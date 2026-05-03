@@ -1,0 +1,8 @@
+# RFID Asset Management System - Backup Schedule
+# Add this to crontab using: crontab -e
+
+# Daily backup at 2:00 AM
+0 2 * * * /path/to/scripts/backup.sh daily >> /var/log/rfid_backup.log 2>&1
+
+# Weekly backup on Sunday at 3:00 AM
+0 3 * * 0 /path/to/scripts/backup.sh weekly >> /var/log/rfid_backup.log 2>&1

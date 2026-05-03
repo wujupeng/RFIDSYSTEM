@@ -1,0 +1,164 @@
+syntax = "proto3";
+
+package asset;
+
+service AssetService {
+  rpc CreateAsset (CreateAssetRequest) returns (CreateAssetResponse);
+  rpc GetAsset (GetAssetRequest) returns (GetAssetResponse);
+  rpc UpdateAssetStatus (UpdateAssetStatusRequest) returns (UpdateAssetStatusResponse);
+  rpc ListAssets (ListAssetsRequest) returns (ListAssetsResponse);
+
+  rpc BatchScanEPC (BatchScanRequest) returns (BatchScanResponse);
+  rpc StartInventoryTask (StartInventoryTaskRequest) returns (StartInventoryTaskResponse);
+  rpc GetInventoryTask (GetInventoryTaskRequest) returns (GetInventoryTaskResponse);
+
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+  rpc GetMetrics (GetMetricsRequest) returns (GetMetricsResponse);
+}
+
+message CreateAssetRequest {
+  string name = 1;
+  string type = 2;
+  string asset_code = 3;
+  string rfid_epc = 4;
+  string location = 5;
+  string operator_name = 6;
+}
+
+message CreateAssetResponse {
+  int32 id = 1;
+  string asset_code = 2;
+  string message = 3;
+}
+
+message GetAssetRequest {
+  int32 id = 1;
+}
+
+message GetAssetResponse {
+  int32 id = 1;
+  string name = 2;
+  string type = 3;
+  string asset_code = 4;
+  string rfid_epc = 5;
+  string location = 6;
+  string status = 7;
+  int64 created_at = 8;
+}
+
+message UpdateAssetStatusRequest {
+  int32 id = 1;
+  string new_status = 2;
+  string operator_name = 3;
+}
+
+message UpdateAssetStatusResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListAssetsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status_filter = 3;
+}
+
+message ListAssetsResponse {
+  repeated GetAssetResponse assets = 1;
+  int32 total_count = 2;
+}
+
+message BatchScanRequest {
+  repeated string epcs = 1;
+  int32 task_id = 2;
+}
+
+message ScanResult {
+  string epc = 1;
+  int32 asset_id = 2;
+  string asset_code = 3;
+  string asset_name = 4;
+  string status = 5;
+}
+
+message BatchScanResponse {
+  repeated ScanResult found = 1;
+  repeated string missing = 2;
+  repeated string extra = 3;
+  int32 total_scanned = 4;
+  int32 total_found = 5;
+  int32 total_missing = 6;
+  int32 total_extra = 7;
+}
+
+message StartInventoryTaskRequest {
+  string task_name = 1;
+  string location = 2;
+  string operator_name = 3;
+}
+
+message StartInventoryTaskResponse {
+  int32 task_id = 1;
+  string message = 2;
+}
+
+message GetInventoryTaskRequest {
+  int32 task_id = 1;
+}
+
+message InventoryTask {
+  int32 id = 1;
+  string task_name = 2;
+  string status = 3;
+  int32 scanned_count = 4;
+  int32 found_count = 5;
+  int32 missing_count = 6;
+  int32 extra_count = 7;
+  string location = 8;
+  string operator_name = 9;
+  int64 created_at = 10;
+  int64 completed_at = 11;
+}
+
+message GetInventoryTaskResponse {
+  InventoryTask task = 1;
+  BatchScanResponse last_scan_result = 2;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  string status = 1;
+  string version = 2;
+  int64 uptime_seconds = 3;
+  int32 active_readers = 4;
+  int32 db_pool_available = 5;
+  int32 db_pool_size = 6;
+}
+
+message GetMetricsRequest {}
+
+message GetMetricsResponse {
+  int64 uptime_seconds = 1;
+  int64 epc_processed_total = 2;
+  int64 epc_dropped_total = 3;
+  double epc_per_second = 4;
+  double db_latency_p99_ms = 5;
+  double request_success_rate = 6;
+  double error_rate = 7;
+  int32 active_readers = 8;
+  int32 active_tasks = 9;
+  int64 requests_success = 10;
+  int64 requests_failed = 11;
+  int32 epc_buffer_size = 12;
+  int32 db_pool_available = 13;
+  int32 db_pool_size = 14;
+}
+
+enum AssetStatus {
+  ASSET_STATUS_UNSPECIFIED = 0;
+  ASSET_STATUS_IN_STOCK = 1;
+  ASSET_STATUS_IN_USE = 2;
+  ASSET_STATUS_REPAIR = 3;
+  ASSET_STATUS_SCRAPPED = 4;
+}

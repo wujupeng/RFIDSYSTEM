@@ -1,0 +1,16 @@
+[Unit]
+Description=RFID Asset Management Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/rfid/server
+WorkingDirectory=/opt/rfid
+User=rfid
+Group=rfid
+Restart=always
+RestartSec=5
+Environment="LD_LIBRARY_PATH=/opt/rfid/lib"
+
+[Install]
+WantedBy=multi-user.target
