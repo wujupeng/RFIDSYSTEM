@@ -1,7 +1,22 @@
-# RFIDSYSTEM
-# RFID 资产全生命周期管理系统
+# RFIDSYSTEM v3.1
+# RFID 资产全生命周期 + 决策智能管理系统
 
-> RFID 驱动的 EAM + ITAM 融合平台，覆盖 IT 设备与生产设备的完整生命周期管理。
+> **v3.1 Bayesian Auto-Tuning** | RFID 驱动的 EAM + ITAM 融合平台，覆盖 IT 设备与生产设备的完整生命周期管理，具备 AI 决策能力。
+
+---
+
+## 版本历史
+
+| 版本 | 日期 | 说明 |
+|------|------|------|
+| [v1.0](https://github.com/example/rfid-system/releases/tag/v1.0) | 2026-01 | 基础资产管理，入库/领用/查询 |
+| [v2.0](https://github.com/example/rfid-system/releases/tag/v2.0) | 2026-02 | RFID 盘点功能，盘盈/盘亏对比 |
+| [v2.3](https://github.com/example/rfid-system/releases/tag/v2.3) | 2026-03 | gRPC 通信层，Qt 客户端，决策引擎 |
+| [v2.4](https://github.com/example/rfid-system/releases/tag/v2.4) | 2026-03 | 决策可解释层（Snapshot + Risk Breakdown） |
+| [v2.5](https://github.com/example/rfid-system/releases/tag/v2.5) | 2026-04 | 规则演进系统（Rule Registry + Versioning） |
+| [v2.6](https://github.com/example/rfid-system/releases/tag/v2.6) | 2026-04 | 规则影响分析（Rule Impact Analysis） |
+| **[v3.0](https://github.com/example/rfid-system/releases/tag/v3.0)** | 2026-05 | **自动调参系统（Random/Grid/Gradient Search）** |
+| **[v3.1](https://github.com/example/rfid-system/releases/tag/v3.1)** | 2026-05 | **Bayesian Auto-Tuning（高斯过程 + 获取函数）** |
 
 ---
 
@@ -9,198 +24,184 @@
 
 ```
 采购 → 入库 → 贴标(RFID) → 领用 → 使用 → 巡检 → 报修 → 维修 → 盘点 → 报废
+                                    ↓
+                              ┌─────────────┐
+                              │  决策引擎   │ ← AI 核心
+                              └─────────────┘
+                                    ↓
+                         ┌────────────────────────┐
+                         │  Bayesian Auto-Tuner   │
+                         │  (v3.1 新增)          │
+                         └────────────────────────┘
 ```
-
-### 整体架构（四层）
-
-<!-- SVG: 系统架构图 -->
-<p align="center">
-<svg width="100%" viewBox="0 0 680 580" xmlns="http://www.w3.org/2000/svg" style="max-width:800px;font-family:sans-serif">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </marker>
-  </defs>
-
-  <!-- Layer 1: 设备层 -->
-  <rect x="40" y="30" width="600" height="90" rx="12" fill="#f1efe8" stroke="#b4b2a9" stroke-width="0.8"/>
-  <text x="340" y="54" text-anchor="middle" font-size="14" font-weight="600" fill="#2c2c2a">设备层（RFID 硬件）</text>
-  <rect x="58" y="64" width="138" height="38" rx="6" fill="#d3d1c7" stroke="#888780" stroke-width="0.5"/>
-  <text x="127" y="87" text-anchor="middle" font-size="12" fill="#2c2c2a">固定读写器（仓库/通道）</text>
-  <rect x="210" y="64" width="128" height="38" rx="6" fill="#d3d1c7" stroke="#888780" stroke-width="0.5"/>
-  <text x="274" y="87" text-anchor="middle" font-size="12" fill="#2c2c2a">手持 PDA 读写器</text>
-  <rect x="354" y="64" width="128" height="38" rx="6" fill="#d3d1c7" stroke="#888780" stroke-width="0.5"/>
-  <text x="418" y="87" text-anchor="middle" font-size="12" fill="#2c2c2a">UHF RFID 标签（Impinj）</text>
-  <rect x="498" y="64" width="120" height="38" rx="6" fill="#d3d1c7" stroke="#888780" stroke-width="0.5"/>
-  <text x="558" y="87" text-anchor="middle" font-size="12" fill="#2c2c2a">天线阵列</text>
-
-  <!-- Arrow 1→2 -->
-  <line x1="340" y1="120" x2="340" y2="148" stroke="#888" stroke-width="1" marker-end="url(#arrow)"/>
-  <text x="354" y="138" font-size="11" fill="#888">gRPC</text>
-
-  <!-- Layer 2: 客户端层 -->
-  <rect x="40" y="150" width="600" height="100" rx="12" fill="#e1f5ee" stroke="#1d9e75" stroke-width="0.8"/>
-  <text x="340" y="174" text-anchor="middle" font-size="14" font-weight="600" fill="#085041">客户端层（Qt + C++，Win11）</text>
-  <rect x="58" y="184" width="170" height="50" rx="6" fill="#9fe1cb" stroke="#0f6e56" stroke-width="0.5"/>
-  <text x="143" y="204" text-anchor="middle" font-size="13" font-weight="600" fill="#04342c">资产管理客户端</text>
-  <text x="143" y="222" text-anchor="middle" font-size="11" fill="#085041">主系统，全功能模块</text>
-  <rect x="248" y="184" width="170" height="50" rx="6" fill="#9fe1cb" stroke="#0f6e56" stroke-width="0.5"/>
-  <text x="333" y="204" text-anchor="middle" font-size="13" font-weight="600" fill="#04342c">RFID 盘点工具</text>
-  <text x="333" y="222" text-anchor="middle" font-size="11" fill="#085041">手持枪对接，批量盘点</text>
-  <rect x="438" y="184" width="170" height="50" rx="6" fill="#9fe1cb" stroke="#0f6e56" stroke-width="0.5"/>
-  <text x="523" y="204" text-anchor="middle" font-size="13" font-weight="600" fill="#04342c">运维客户端</text>
-  <text x="523" y="222" text-anchor="middle" font-size="11" fill="#085041">报修 / 巡检入口</text>
-
-  <!-- Arrow 2→3 -->
-  <line x1="340" y1="250" x2="340" y2="278" stroke="#888" stroke-width="1" marker-end="url(#arrow)"/>
-  <text x="354" y="268" font-size="11" fill="#888">gRPC</text>
-
-  <!-- Layer 3: 服务端层 -->
-  <rect x="40" y="280" width="600" height="130" rx="12" fill="#eeedfe" stroke="#534ab7" stroke-width="0.8"/>
-  <text x="340" y="304" text-anchor="middle" font-size="14" font-weight="600" fill="#26215c">服务端层（C++ + Debian 13）</text>
-  <rect x="58" y="316" width="128" height="76" rx="6" fill="#cec bf6" stroke="#534ab7" stroke-width="0.5"/>
-  <rect x="58" y="316" width="128" height="76" rx="6" fill="#cecbf6" stroke="#534ab7" stroke-width="0.5"/>
-  <text x="122" y="344" text-anchor="middle" font-size="13" font-weight="600" fill="#26215c">gRPC 服务</text>
-  <text x="122" y="362" text-anchor="middle" font-size="11" fill="#3c3489">Boost.Asio</text>
-  <text x="122" y="378" text-anchor="middle" font-size="11" fill="#3c3489">主通信框架</text>
-  <rect x="202" y="316" width="128" height="76" rx="6" fill="#cecbf6" stroke="#534ab7" stroke-width="0.5"/>
-  <text x="266" y="344" text-anchor="middle" font-size="13" font-weight="600" fill="#26215c">业务服务</text>
-  <text x="266" y="362" text-anchor="middle" font-size="11" fill="#3c3489">资产/报修/巡检</text>
-  <text x="266" y="378" text-anchor="middle" font-size="11" fill="#3c3489">盘点逻辑</text>
-  <rect x="346" y="316" width="128" height="76" rx="6" fill="#cecbf6" stroke="#534ab7" stroke-width="0.5"/>
-  <text x="410" y="344" text-anchor="middle" font-size="13" font-weight="600" fill="#26215c">PostgreSQL</text>
-  <text x="410" y="362" text-anchor="middle" font-size="11" fill="#3c3489">主数据库</text>
-  <text x="410" y="378" text-anchor="middle" font-size="11" fill="#3c3489">资产全量数据</text>
-  <rect x="490" y="316" width="138" height="76" rx="6" fill="#cecbf6" stroke="#534ab7" stroke-width="0.5"/>
-  <text x="559" y="344" text-anchor="middle" font-size="13" font-weight="600" fill="#26215c">Redis / NATS</text>
-  <text x="559" y="362" text-anchor="middle" font-size="11" fill="#3c3489">缓存 + 消息队列</text>
-  <text x="559" y="378" text-anchor="middle" font-size="11" fill="#3c3489">进阶扩展</text>
-
-  <!-- Arrow 3→4 -->
-  <line x1="340" y1="410" x2="340" y2="438" stroke="#888" stroke-width="1" marker-end="url(#arrow)"/>
-
-  <!-- Layer 4: 管理后台 -->
-  <rect x="40" y="440" width="600" height="80" rx="12" fill="#faece7" stroke="#993c1d" stroke-width="0.8"/>
-  <text x="340" y="466" text-anchor="middle" font-size="14" font-weight="600" fill="#4a1b0c">管理后台（Qt Admin 客户端）</text>
-  <text x="340" y="486" text-anchor="middle" font-size="12" fill="#712b13">超级管理员 · RBAC 权限管理 · 仪表盘 · 报表 · 系统设置 · 用户管理</text>
-  <text x="340" y="505" text-anchor="middle" font-size="11" fill="#993c1d">权限更高，类运维控制台</text>
-
-  <!-- 技术栈说明 -->
-  <text x="340" y="548" text-anchor="middle" font-size="11" fill="#888">协议: EPC Gen2 UHF 860–960MHz · 芯片: Impinj · 接口: gRPC · 系统: Debian 13</text>
-</svg>
-</p>
 
 ---
 
-### 资产全生命周期流程
+### 整体架构（六层）
 
-<!-- SVG: 生命周期流程图 -->
-<p align="center">
-<svg width="100%" viewBox="0 0 680 430" xmlns="http://www.w3.org/2000/svg" style="max-width:800px;font-family:sans-serif">
-  <defs>
-    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </marker>
-  </defs>
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Decision Intelligence Platform                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Layer 6: AI 决策层 (v3.0+v3.1)                    │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────────┐   │    │
+│  │  │Auto-Tuner   │  │Reward System│  │ Bayesian Optimizer (v3.1) │   │    │
+│  │  │(随机搜索)   │  │(奖励函数)   │  │ Gaussian Process         │   │    │
+│  │  └─────────────┘  └─────────────┘  └──────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                     ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Layer 5: 规则演进层 (v2.5+v2.6)                    │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────────┐   │    │
+│  │  │Rule Registry│  │Rule Version  │  │ Rule Impact Analyzer     │   │    │
+│  │  │(规则注册)   │  │Control      │  │ (规则效果归因)           │   │    │
+│  │  └─────────────┘  └─────────────┘  └──────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                     ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Layer 4: 决策引擎层 (v2.3+v2.4)                    │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────────┐   │    │
+│  │  │Decision     │  │Decision     │  │ Action Generator        │   │    │
+│  │  │Engine       │  │Stability    │  │ (INSPECT/ALERT/IGNORE)  │   │    │
+│  │  └─────────────┘  └─────────────┘  └──────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                     ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Layer 3: 分析层                                    │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────────┐   │    │
+│  │  │Trajectory   │  │Anomaly      │  │ Asset Predictor          │   │    │
+│  │  │Engine       │  │Detector     │  │ (风险预测)               │   │    │
+│  │  └─────────────┘  └─────────────┘  └──────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                     ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Layer 2: RFID 核心层                              │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────────┐   │    │
+│  │  │Reader       │  │EPC Buffer   │  │ EPC Validator           │   │    │
+│  │  │Manager      │  │(去重/限流)  │  │ (格式验证)               │   │    │
+│  │  └─────────────┘  └─────────────┘  └──────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                     ↓                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                    Layer 1: 设备层                                   │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────────────────┐   │    │
+│  │  │固定读写器   │  │手持 PDA     │  │ UHF RFID Tag (Impinj)   │   │    │
+│  │  └─────────────┘  └─────────────┘  └──────────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-  <text x="340" y="28" text-anchor="middle" font-size="14" font-weight="600" fill="#333">资产全生命周期闭环</text>
+---
 
-  <!-- Row 1 -->
-  <rect x="40" y="46" width="108" height="50" rx="8" fill="#f1efe8" stroke="#888780" stroke-width="0.8"/>
-  <text x="94" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="#2c2c2a">采购入库</text>
-  <text x="94" y="84" text-anchor="middle" font-size="11" fill="#5f5e5a">采购单→到货录入</text>
-  <line x1="148" y1="71" x2="168" y2="71" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+## 资产全生命周期流程
 
-  <rect x="170" y="46" width="108" height="50" rx="8" fill="#e1f5ee" stroke="#1d9e75" stroke-width="0.8"/>
-  <text x="224" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">生成编号</text>
-  <text x="224" y="84" text-anchor="middle" font-size="11" fill="#0f6e56">IT-SZ-2026-XXXX</text>
-  <line x1="278" y1="71" x2="298" y2="71" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        资产全生命周期闭环                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐              │
+│  │  采购入库    │────▶│ RFID 写卡   │────▶│  领用出库    │              │
+│  │  IN_STOCK   │     │ EPC 绑定    │     │  IN_USE     │              │
+│  └──────────────┘     └──────────────┘     └──────┬───────┘              │
+│                                                      │                     │
+│                         ┌────────────────────────────┼────────────────┐    │
+│                         ▼                            ▼                ▼    │
+│                  ┌──────────────┐            ┌──────────────┐ ┌──────────┐ │
+│                  │  定期巡检    │            │  故障报修    │ │ RFID盘点 │ │
+│                  │  (决策建议)  │            │  REPAIR     │ │ (核心)   │ │
+│                  └──────────────┘            └──────┬───────┘ └────┬─────┘ │
+│                         │                          │              │       │
+│                         └──────────────────────────┴──────────────┘       │
+│                                          │                                  │
+│                                          ▼                                  │
+│                                 ┌──────────────┐                           │
+│                                 │  报废处置    │                           │
+│                                 │  SCRAPPED   │                           │
+│                                 └──────────────┘                           │
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                         决策反馈闭环 (AI Core)                         │  │
+│  │                                                                       │  │
+│  │   RFID数据 ──▶ 决策引擎 ──▶ 系统建议 ──▶ 用户反馈 ──▶ 奖励评估      │  │
+│  │                                            │               │          │  │
+│  │                                            ▼               ▼          │  │
+│  │                                    ┌─────────────┐ ┌────────────┐    │  │
+│  │                                    │ Adoption    │ │ Bayesian   │    │  │
+│  │                                    │ Rate        │ │ Auto-Tuner│    │  │
+│  │                                    └─────────────┘ └─────┬──────┘    │  │
+│  │                                                           │           │  │
+│  │                                              参数自动优化 ◀───────────┘  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-  <rect x="300" y="46" width="108" height="50" rx="8" fill="#eeedfe" stroke="#534ab7" stroke-width="0.8"/>
-  <text x="354" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="#26215c">RFID 写卡</text>
-  <text x="354" y="84" text-anchor="middle" font-size="11" fill="#3c3489">EPC → AssetID 贴标</text>
-  <line x1="408" y1="71" x2="428" y2="71" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+---
 
-  <rect x="430" y="46" width="108" height="50" rx="8" fill="#e1f5ee" stroke="#1d9e75" stroke-width="0.8"/>
-  <text x="484" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">领用出库</text>
-  <text x="484" y="84" text-anchor="middle" font-size="11" fill="#0f6e56">申请→审批→绑定</text>
+## 核心功能模块
 
-  <!-- 状态标签 Row 1 -->
-  <rect x="40" y="104" width="50" height="20" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
-  <text x="65" y="118" text-anchor="middle" font-size="10" fill="#185fa5">在库</text>
-  <rect x="170" y="104" width="50" height="20" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
-  <text x="195" y="118" text-anchor="middle" font-size="10" fill="#185fa5">在库</text>
-  <rect x="300" y="104" width="50" height="20" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
-  <text x="325" y="118" text-anchor="middle" font-size="10" fill="#185fa5">在库</text>
-  <rect x="430" y="104" width="60" height="20" rx="4" fill="#eaf3de" stroke="#3b6d11" stroke-width="0.5"/>
-  <text x="460" y="118" text-anchor="middle" font-size="10" fill="#3b6d11">使用中</text>
+### v3.1 Bayesian Auto-Tuning 系统
 
-  <!-- Arrow down 领用→巡检 -->
-  <line x1="484" y1="96" x2="484" y2="150" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+```cpp
+// 奖励函数
+total_reward =
+    0.4 × accuracy_score      // 准确率
+  + 0.3 × adoption_rate        // 采纳率
+  - 0.2 × false_positive_rate // 误报惩罚
+  + 0.1 × stability_score     // 稳定性
 
-  <!-- Row 2 -->
-  <rect x="430" y="152" width="108" height="50" rx="8" fill="#e1f5ee" stroke="#1d9e75" stroke-width="0.8"/>
-  <text x="484" y="172" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">定期巡检</text>
-  <text x="484" y="190" text-anchor="middle" font-size="11" fill="#0f6e56">扫标签→自动记录</text>
-  <line x1="430" y1="177" x2="408" y2="177" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+// 可调参数（11个）
+- missing_hours_threshold      [24-168h]
+- inactivity_hours_threshold   [12-120h]
+- abnormal_score_threshold     [0.3-0.95]
+- cooldown_alert_minutes       [30-120min]
+- missing_risk_weight          [0.1-0.8]
+- alert_priority_threshold     [1.0-4.0]
+// ... 共11个可调参数
 
-  <rect x="300" y="152" width="108" height="50" rx="8" fill="#faeeda" stroke="#ba7517" stroke-width="0.8"/>
-  <text x="354" y="172" text-anchor="middle" font-size="13" font-weight="600" fill="#412402">故障报修</text>
-  <text x="354" y="190" text-anchor="middle" font-size="11" fill="#854f0b">报修→派单→SLA</text>
-  <line x1="300" y1="177" x2="278" y2="177" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+// 调参策略
+- random     : 随机搜索（v3.0）
+- grid       : 网格搜索（v3.0）
+- gradient   : 梯度上升（v3.0）
+- bayesian   : 贝叶斯优化（v3.1 ⭐）
+```
 
-  <rect x="170" y="152" width="108" height="50" rx="8" fill="#faece7" stroke="#993c1d" stroke-width="0.8"/>
-  <text x="224" y="172" text-anchor="middle" font-size="13" font-weight="600" fill="#4a1b0c">送修维修</text>
-  <text x="224" y="190" text-anchor="middle" font-size="11" fill="#712b13">状态: 维修中</text>
-  <line x1="170" y1="177" x2="148" y2="177" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+### 决策引擎 (Decision Engine v2.3)
 
-  <rect x="40" y="152" width="108" height="50" rx="8" fill="#e1f5ee" stroke="#1d9e75" stroke-width="0.8"/>
-  <text x="94" y="172" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">验收归还</text>
-  <text x="94" y="190" text-anchor="middle" font-size="11" fill="#0f6e56">验收→恢复使用</text>
+```cpp
+enum class ActionType {
+    INSPECT,        // 立即巡检
+    CHECK_USAGE,    // 检查使用情况
+    SECURITY_ALERT, // 安全告警
+    NO_ACTION       // 无需行动
+};
 
-  <!-- 状态标签 Row 2 -->
-  <rect x="430" y="210" width="60" height="20" rx="4" fill="#eaf3de" stroke="#3b6d11" stroke-width="0.5"/>
-  <text x="460" y="224" text-anchor="middle" font-size="10" fill="#3b6d11">使用中</text>
-  <rect x="300" y="210" width="60" height="20" rx="4" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
-  <text x="330" y="224" text-anchor="middle" font-size="10" fill="#854f0b">待维修</text>
-  <rect x="170" y="210" width="60" height="20" rx="4" fill="#faeeda" stroke="#ba7517" stroke-width="0.5"/>
-  <text x="200" y="224" text-anchor="middle" font-size="10" fill="#854f0b">维修中</text>
-  <rect x="40" y="210" width="60" height="20" rx="4" fill="#eaf3de" stroke="#3b6d11" stroke-width="0.5"/>
-  <text x="70" y="224" text-anchor="middle" font-size="10" fill="#3b6d11">使用中</text>
+// 决策考虑因素
+- 丢失风险 (missing_risk)
+- 闲置风险 (inactivity_risk)
+- 异常行为风险 (abnormal_risk)
+- 位置合法性 (illegal_location)
+- 设备健康状态 (health_score)
+```
 
-  <!-- Arrow down 验收→盘点 -->
-  <line x1="94" y1="202" x2="94" y2="258" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+### 规则演进系统 (Rule Evolution v2.5)
 
-  <!-- Row 3 -->
-  <rect x="40" y="260" width="172" height="62" rx="8" fill="#eeedfe" stroke="#534ab7" stroke-width="0.8"/>
-  <text x="126" y="282" text-anchor="middle" font-size="13" font-weight="600" fill="#26215c">RFID 盘点（核心亮点）</text>
-  <text x="126" y="300" text-anchor="middle" font-size="11" fill="#3c3489">手持 PDA / 固定通道</text>
-  <text x="126" y="316" text-anchor="middle" font-size="11" fill="#3c3489">盘盈 / 盘亏 / 位置异常</text>
-  <line x1="212" y1="291" x2="248" y2="291" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
+```cpp
+// 规则版本控制
+- 规则注册表 (RuleRegistry)
+- 版本对比 (Rule Diff)
+- 版本回滚 (Rollback)
+- 规则变更历史 (rule_changes)
 
-  <rect x="250" y="260" width="148" height="62" rx="8" fill="#e1f5ee" stroke="#1d9e75" stroke-width="0.8"/>
-  <text x="324" y="282" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">自动数据对比</text>
-  <text x="324" y="300" text-anchor="middle" font-size="11" fill="#0f6e56">对比系统资产台账</text>
-  <text x="324" y="316" text-anchor="middle" font-size="11" fill="#0f6e56">生成差异报告</text>
-  <line x1="398" y1="291" x2="434" y2="291" stroke="#888" stroke-width="1" marker-end="url(#arr2)"/>
-
-  <rect x="436" y="260" width="172" height="62" rx="8" fill="#faece7" stroke="#993c1d" stroke-width="0.8"/>
-  <text x="522" y="282" text-anchor="middle" font-size="13" font-weight="600" fill="#4a1b0c">报废 / 处置</text>
-  <text x="522" y="300" text-anchor="middle" font-size="11" fill="#712b13">审批→报废→RFID 注销</text>
-  <text x="522" y="316" text-anchor="middle" font-size="11" fill="#712b13">已处置（终态）</text>
-
-  <!-- 状态标签 Row 3 -->
-  <rect x="40" y="330" width="60" height="20" rx="4" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
-  <text x="70" y="344" text-anchor="middle" font-size="10" fill="#185fa5">任意状态</text>
-  <rect x="436" y="330" width="60" height="20" rx="4" fill="#fcebeb" stroke="#a32d2d" stroke-width="0.5"/>
-  <text x="466" y="344" text-anchor="middle" font-size="10" fill="#a32d2d">已报废</text>
-
-  <!-- MVP 说明 -->
-  <rect x="40" y="368" width="598" height="48" rx="8" fill="#f7f6f2" stroke="#d3d1c7" stroke-width="0.5"/>
-  <text x="340" y="388" text-anchor="middle" font-size="12" font-weight="600" fill="#444">MVP 优先路径</text>
-  <text x="340" y="408" text-anchor="middle" font-size="11" fill="#888">采购入库 → RFID 写卡 → 领用 → 盘点  |  Phase 2: 报修 → 巡检  |  Phase 3: 自动化通道机 + BI 报表</text>
-</svg>
-</p>
+// 规则影响分析
+- impact_score      : 规则影响分数
+- precision_delta   : 精确率变化
+- recall_delta      : 召回率变化
+```
 
 ---
 
@@ -208,90 +209,284 @@
 
 | 层级 | 技术 |
 |------|------|
-| 客户端 | Qt 6 + C++17（Win11） |
-| 服务端 | C++（Boost.Asio）+ Debian 13 |
-| 接口协议 | gRPC + Protobuf |
-| 数据库 | PostgreSQL |
-| 缓存 | Redis |
-| 消息队列 | NATS（进阶） |
-| RFID 协议 | EPC Gen2 UHF 860–960MHz（Impinj） |
+| **客户端** | Qt 6 + C++17（Win11） |
+| **服务端** | C++（gRPC）+ Debian 13 |
+| **接口协议** | gRPC + Protobuf |
+| **数据库** | PostgreSQL 15+ |
+| **缓存** | Redis（进阶） |
+| **AI 引擎** | Gaussian Process + Bayesian Optimization |
+| **RFID 协议** | EPC Gen2 UHF 860–960MHz（Impinj） |
 
 ---
 
 ## 工程结构
 
 ```
-rfid-system/
-├── server/                 # C++ 服务端
+rfidsystem/
+├── server/                         # C++ 服务端
+│   ├── main.cpp                    # 服务入口
 │   ├── CMakeLists.txt
-│   ├── main.cpp
-│   ├── config/
-│   ├── core/
-│   ├── db/                 # PostgreSQL 封装（连接池）
-│   ├── rpc/                # gRPC 服务实现
-│   ├── models/
-│   └── services/
+│   │
+│   ├── core/                       # 核心组件
+│   │   ├── logger.h/cpp            # 日志系统
+│   │   ├── epc_buffer.h/cpp        # EPC 缓存/去重
+│   │   ├── epc_validator.h/cpp    # EPC 格式验证
+│   │   ├── rate_limiter.h/cpp      # 限流器
+│   │   └── idempotency_manager.h  # 幂等管理
+│   │
+│   ├── rfid/                       # RFID 层
+│   │   └── reader.h/cpp            # 读写器管理
+│   │
+│   ├── db/                         # 数据库层
+│   │   └── db_pool.h/cpp           # 连接池
+│   │
+│   ├── analytics/                  # 分析层
+│   │   ├── trajectory_engine.h     # 轨迹分析
+│   │   ├── anomaly_detector.h      # 异常检测
+│   │   ├── predictor/              # 预测模块
+│   │   │   └── asset_predictor.h
+│   │   ├── scoring/                # 评分模块
+│   │   │   └── asset_score.h
+│   │   └── decision/               # 决策模块
+│   │       ├── decision_engine.h   # 决策引擎
+│   │       ├── decision_stability.h# 决策稳定性
+│   │       ├── action_generator.h  # 动作生成
+│   │       └── rule_impact_analyzer.h # 规则影响分析
+│   │
+│   ├── repository/                  # 数据仓库层
+│   │   ├── decision_repository.h   # 决策仓储
+│   │   └── rule_registry.h         # 规则注册表
+│   │
+│   ├── services/                   # 业务服务
+│   │   ├── asset_service.h         # 资产服务
+│   │   ├── inventory_service.h     # 盘点服务
+│   │   ├── auth_service.h          # 认证服务
+│   │   └── audit_service.h         # 审计服务
+│   │
+│   ├── tuning/                      # ⭐ Auto-Tuning (v3.0+v3.1)
+│   │   ├── auto_tuner.h/cpp         # 自动调参器
+│   │   ├── parameter_space.h/cpp   # 参数空间
+│   │   ├── reward_evaluator.h/cpp  # 奖励评估
+│   │   ├── tuning_strategy.h/cpp   # 调参策略
+│   │   └── bayes/                  # 贝叶斯优化
+│   │       ├── gaussian_process.h  # 高斯过程
+│   │       ├── surrogate_model.h   # 代理模型
+│   │       ├── acquisition_function.h # 获取函数
+│   │       └── bayesian_optimizer.h # 贝叶斯优化器
+│   │
+│   └── rpc/                         # gRPC 服务
+│       ├── asset_service.h/cpp     # 资产服务
+│       └── decision_service.h/cpp  # 决策服务
 │
-├── client/                 # Qt 客户端（Win11）
+├── client/                         # Qt 客户端
+│   ├── main.cpp
 │   ├── CMakeLists.txt
-│   ├── main.cpp
-│   ├── ui/
-│   ├── pages/
-│   └── network/            # gRPC 客户端封装
+│   ├── pages/                      # 页面
+│   │   ├── dashboard/              # 仪表盘
+│   │   ├── asset/                  # 资产管理
+│   │   ├── inventory/              # 盘点
+│   │   │   └── inventory_scan_page.h # 盘点扫描页
+│   │   ├── recommendations/        # ⭐ 系统建议页
+│   │   │   └── system_recommendations_page.h
+│   │   └── repair/                 # 报修
+│   └── network/                    # 网络层
+│       └── grpc_client.h/cpp       # gRPC 客户端
 │
-├── proto/                  # gRPC 接口定义
-│   └── asset.proto
+├── proto/                          # gRPC 接口定义
+│   ├── asset.proto                 # 资产服务
+│   └── decision.proto              # 决策服务
 │
-├── scripts/
-│   ├── init_db.sql
-│   └── run_server.sh
-│
-└── README.md
+└── scripts/                        # 脚本
+    ├── init_db.sql                 # 初始化数据库
+    ├── migration_*.sql             # 数据库迁移
+    └── run_server.sh               # 启动脚本
 ```
 
 ---
 
 ## 核心数据库表
 
+### 资产与操作
+
 ```sql
 -- 资产主表
 CREATE TABLE assets (
-    id          SERIAL PRIMARY KEY,
-    asset_code  TEXT UNIQUE,          -- IT-SZ-2026-000123
-    rfid_epc    TEXT UNIQUE,          -- RFID EPC 绑定
-    name        TEXT,
-    type        TEXT,                 -- IT / EQ
-    status      TEXT DEFAULT 'in_stock', -- in_stock / in_use / repairing / scrapped
-    location    TEXT,
-    owner       TEXT,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    asset_code TEXT UNIQUE NOT NULL,  -- IT-SZ-2026-000123
+    rfid_epc TEXT UNIQUE,             -- RFID EPC 绑定
+    name TEXT NOT NULL,
+    type TEXT,                        -- IT / EQ
+    status TEXT DEFAULT 'IN_STOCK',   -- IN_STOCK/IN_USE/REPAIR/SCRAPPED
+    location TEXT,
+    owner TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- 全量操作日志
-CREATE TABLE asset_logs (
-    id          SERIAL PRIMARY KEY,
-    asset_id    INTEGER REFERENCES assets(id),
-    action      TEXT,                 -- 入库/领用/维修/盘点
-    operator    TEXT,
-    timestamp   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 维修单
-CREATE TABLE repair_orders (
-    id          SERIAL PRIMARY KEY,
-    asset_id    INTEGER REFERENCES assets(id),
-    issue       TEXT,
-    status      TEXT DEFAULT 'open', -- open / in_progress / closed
-    assigned_to TEXT,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- 操作日志
+CREATE TABLE operation_logs (
+    id SERIAL PRIMARY KEY,
+    asset_id INT REFERENCES assets(id),
+    operation_type TEXT NOT NULL,      -- 入库/领用/维修/盘点
+    operator TEXT NOT NULL,
+    old_status TEXT,
+    new_status TEXT,
+    remark TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- 盘点任务
 CREATE TABLE inventory_tasks (
-    id          SERIAL PRIMARY KEY,
-    area        TEXT,
-    status      TEXT DEFAULT 'pending',
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    task_name TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDING',     -- PENDING/IN_PROGRESS/COMPLETED
+    scanned_count INT DEFAULT 0,
+    found_count INT DEFAULT 0,
+    missing_count INT DEFAULT 0,
+    extra_count INT DEFAULT 0,
+    location TEXT,
+    operator TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    completed_at TIMESTAMP
+);
+
+-- 盘点结果
+CREATE TABLE inventory_results (
+    id SERIAL PRIMARY KEY,
+    task_id INT REFERENCES inventory_tasks(id),
+    epc TEXT NOT NULL,
+    asset_id INT REFERENCES assets(id),
+    status TEXT NOT NULL,              -- FOUND/MISSING/EXTRA
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 决策系统 (v2.3+)
+
+```sql
+-- 决策表
+CREATE TABLE decisions (
+    id SERIAL PRIMARY KEY,
+    asset_id INT REFERENCES assets(id),
+    action_type TEXT NOT NULL,        -- INSPECT/CHECK_USAGE/SECURITY_ALERT/NO_ACTION
+    action_reason TEXT,
+    priority INT,                      -- 1-5, 1为最高
+    risk_level TEXT,                   -- HIGH/MEDIUM/LOW
+    is_shadow_mode BOOLEAN DEFAULT FALSE,
+    is_handled BOOLEAN DEFAULT FALSE,
+    is_executed BOOLEAN DEFAULT FALSE,
+    is_ignored BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    handled_at TIMESTAMP
+);
+
+-- 决策快照 (v2.4 可解释层)
+CREATE TABLE decision_snapshots (
+    id SERIAL PRIMARY KEY,
+    decision_id INT REFERENCES decisions(id),
+    asset_id INT REFERENCES assets(id),
+    risk_missing DOUBLE PRECISION,
+    risk_inactivity DOUBLE PRECISION,
+    risk_abnormal DOUBLE PRECISION,
+    score INT,
+    rule_version VARCHAR(50),
+    threshold_snapshot JSONB,
+    engine_version VARCHAR(50),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 规则表 (v2.5 规则演进)
+CREATE TABLE decision_rules (
+    id SERIAL PRIMARY KEY,
+    rule_name VARCHAR(100) UNIQUE NOT NULL,
+    rule_version VARCHAR(50) NOT NULL,
+    description TEXT,
+    parameters JSONB,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    activated_at TIMESTAMP
+);
+
+-- 规则变更历史
+CREATE TABLE rule_changes (
+    id SERIAL PRIMARY KEY,
+    rule_id INT REFERENCES decision_rules(id),
+    change_type VARCHAR(50),           -- CREATED/UPDATED/ACTIVATED/DEACTIVATED
+    old_version VARCHAR(50),
+    new_version VARCHAR(50),
+    change_details JSONB,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 规则影响分析 (v2.6)
+CREATE TABLE rule_impact_analysis (
+    id SERIAL PRIMARY KEY,
+    rule_version VARCHAR(50) NOT NULL,
+    rule_name VARCHAR(100) NOT NULL,
+    impact_score DOUBLE PRECISION,
+    precision_delta DOUBLE PRECISION,
+    recall_delta DOUBLE PRECISION,
+    f1_delta DOUBLE PRECISION,
+    adoption_rate_delta DOUBLE PRECISION,
+    evaluated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### RBAC 权限系统
+
+```sql
+-- 用户表
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    real_name TEXT,
+    email TEXT,
+    status TEXT DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 角色表
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT
+);
+
+-- 权限表
+CREATE TABLE permissions (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    resource TEXT NOT NULL,
+    action TEXT NOT NULL
+);
+
+-- 角色-权限映射
+CREATE TABLE role_permissions (
+    role_id INT REFERENCES roles(id),
+    permission_id INT REFERENCES permissions(id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
+-- 用户-角色映射
+CREATE TABLE user_roles (
+    user_id INT REFERENCES users(id),
+    role_id INT REFERENCES roles(id),
+    PRIMARY KEY (user_id, role_id)
+);
+
+-- 审计日志
+CREATE TABLE audit_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id),
+    action TEXT NOT NULL,
+    target_type TEXT NOT NULL,
+    target_id INT,
+    result TEXT NOT NULL,
+    ip_address TEXT,
+    details TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
@@ -306,65 +501,266 @@ IT-SZ-2026-000123   # IT 设备，深圳工厂
 EQ-SZ-2026-000456   # 生产设备，深圳工厂
 ```
 
-- `IT`：IT 设备（电脑/交换机/服务器）  
-- `EQ`：生产设备（机床/工控/仪器）  
-- RFID Tag 绑定：EPC → AssetID
-
----
-
-## 权限体系（RBAC）
-
-| 角色 | 说明 |
+| 前缀 | 说明 |
 |------|------|
-| 超级管理员 | 全部权限 |
-| IT 管理员 | IT 资产管理 |
-| 设备管理员 | 生产设备管理 |
-| 维修人员 | 报修/维修单操作 |
-| 普通员工 | 申请领用/报修 |
+| `IT` | IT 设备（电脑/交换机/服务器） |
+| `EQ` | 生产设备（机床/工控/仪器） |
 
 ---
 
-## 实施路线
+## API 接口 (gRPC)
 
-| 阶段 | 周期 | 目标 |
-|------|------|------|
-| Phase 1 | 第 1 个月 | 资产管理、入库/领用、基础 RFID 盘点（MVP） |
-| Phase 2 | 第 2–3 个月 | 报修系统、巡检系统、完整盘点 |
-| Phase 3 | 第 4–6 个月 | 自动化通道机、数据分析、BI 报表 |
+### AssetService
 
-> **建议**：先跑通 `客户端 ⇄ gRPC ⇄ PostgreSQL`，带一个最小业务（资产新增 + 查询），再逐步叠加 RFID / 巡检 / 报修模块。
+```protobuf
+service AssetService {
+  rpc CreateAsset (CreateAssetRequest) returns (CreateAssetResponse);
+  rpc GetAsset (GetAssetRequest) returns (GetAssetResponse);
+  rpc UpdateAssetStatus (UpdateAssetStatusRequest) returns (UpdateAssetStatusResponse);
+  rpc ListAssets (ListAssetsRequest) returns (ListAssetsResponse);
+  rpc BatchScanEPC (BatchScanRequest) returns (BatchScanResponse);
+  rpc StartInventoryTask (StartInventoryTaskRequest) returns (StartInventoryTaskResponse);
+  rpc GetRecentDecisions (GetRecentDecisionsRequest) returns (GetRecentDecisionsResponse);
+  rpc ReportDecision (ReportDecisionRequest) returns (ReportDecisionResponse);
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+}
+```
+
+### 决策报告接口
+
+```protobuf
+// 获取系统决策建议
+rpc GetRecentDecisions (GetRecentDecisionsRequest) returns (GetRecentDecisionsResponse) {
+  // Request: limit, user_filter
+  // Response: decisions[], total_count, adoption_rate
+}
+
+// 用户反馈决策
+rpc ReportDecision (ReportDecisionRequest) returns (ReportDecisionResponse) {
+  // Request: asset_id, executed, ignored, user_name
+  // Response: success, message
+}
+```
 
 ---
 
 ## 快速启动
 
-### 服务端（Debian 13）
+### 环境要求
+
+| 组件 | 要求 |
+|------|------|
+| 操作系统 | macOS / Linux (Debian 13) / Windows 11 |
+| C++ 编译器 | GCC 11+ / Clang 15+ / MSVC 2022+ |
+| CMake | 3.16+ |
+| Qt | Qt 6.2+ |
+| PostgreSQL | 15+ |
+| gRPC | 1.50+ |
+| Protobuf | 3.19+ |
+
+### 服务端编译
 
 ```bash
-sudo apt install build-essential cmake libpqxx-dev protobuf-compiler grpc
+# 1. 安装依赖 (macOS)
+brew install cmake protobuf grpc pqxx
 
-createdb rfid
-psql rfid < scripts/init_db.sql
-
+# 2. 编译
 cd server
 mkdir build && cd build
 cmake ..
-make
+make -j$(nproc)
+
+# 3. 初始化数据库
+createdb rfid
+psql rfid -f ../scripts/init_db.sql
+
+# 4. 运行
 ./server
 # Server listening on 0.0.0.0:50051
 ```
 
-### 客户端（Win11 + Qt6）
+### Qt 客户端编译
 
 ```bash
+# 1. 安装 Qt6
+# macOS: brew install qt
+
+# 2. 编译
 cd client
-cmake -B build
-cmake --build build
-./build/client.exe
+mkdir build && cd build
+cmake .. -DCMAKE_PREFIX_PATH=/path/to/qt
+make -j$(nproc)
+
+# 3. 运行
+./client
 ```
+
+### 数据库迁移
+
+```bash
+# 执行所有迁移
+psql rfid -f scripts/init_db.sql
+psql rfid -f scripts/migration_v2.3.sql
+psql rfid -f scripts/migration_v2.4_decision_snapshot.sql
+psql rfid -f scripts/migration_v2.5_rule_evolution.sql
+psql rfid -f scripts/migration_v2.6_rule_impact.sql
+```
+
+---
+
+## 使用示例
+
+### 1. 创建资产
+
+```bash
+# 通过 gRPC 创建
+grpcurl -plaintext -d '{
+  "name": "Dell Laptop XPS 15",
+  "type": "IT",
+  "asset_code": "IT-SZ-2026-000001",
+  "rfid_epc": "300833B2DDE9014000000001",
+  "location": "仓库A-01-03",
+  "operator_name": "admin"
+}' localhost:50051 asset.AssetService/CreateAsset
+```
+
+### 2. 批量扫描盘点
+
+```bash
+# 盘点扫描
+grpcurl -plaintext -d '{
+  "epcs": ["300833B2DDE9014000000001", "300833B2DDE9014000000002"],
+  "task_id": 1
+}' localhost:50051 asset.AssetService/BatchScanEPC
+```
+
+### 3. 获取决策建议
+
+```bash
+# 获取系统建议
+grpcurl -plaintext -d '{
+  "limit": 10
+}' localhost:50051 asset.AssetService/GetRecentDecisions
+```
+
+### 4. 反馈决策
+
+```bash
+# 用户采纳
+grpcurl -plaintext -d '{
+  "asset_id": 1,
+  "executed": true,
+  "ignored": false,
+  "user_name": "operator1"
+}' localhost:50051 asset.AssetService/ReportDecision
+
+# 用户忽略
+grpcurl -plaintext -d '{
+  "asset_id": 2,
+  "executed": false,
+  "ignored": true,
+  "user_name": "operator1"
+}' localhost:50051 asset.AssetService/ReportDecision
+```
+
+---
+
+## 配置说明
+
+### RFID 读写器配置
+
+```ini
+[reader.main]
+type = simulator  # simulator/serial/tcp
+reader_id = READER-001
+
+[reader.warehouse]
+type = tcp
+host = 192.168.1.100
+port = 5000
+rssi_threshold = -70
+```
+
+### 决策阈值配置
+
+```ini
+[decision]
+missing_hours_threshold = 72
+inactivity_hours_threshold = 48
+abnormal_score_threshold = 0.8
+
+[decision.cooldown]
+alert_minutes = 60
+inspect_minutes = 30
+noaction_minutes = 15
+```
+
+### Auto-Tuning 配置
+
+```ini
+[tuning]
+strategy = bayesian  # random/grid/gradient/bayesian
+iterations = 100
+learning_rate = 0.1
+exploration_rate = 0.2
+
+[tuning.bayesian]
+beta = 2.0
+noise_smoothing = 0.1
+
+[tuning.reward]
+accuracy_weight = 0.4
+adoption_weight = 0.3
+fp_penalty_weight = 0.2
+stability_weight = 0.1
+```
+
+---
+
+## 性能指标
+
+| 指标 | 目标值 | 说明 |
+|------|--------|------|
+| EPC 处理速度 | > 1000 EPC/s | 峰值处理能力 |
+| API 响应时间 | < 50ms (P99) | gRPC 接口延迟 |
+| 数据库查询 | < 10ms (P99) | 索引优化后 |
+| 盘点准确率 | > 99.5% | RFID 读取准确率 |
+| 系统可用性 | > 99.9% | SLA 目标 |
+
+---
+
+## 实施路线图
+
+| 阶段 | 版本 | 目标 |
+|------|------|------|
+| **Phase 1** | v1.0-v2.0 | 资产管理基础功能，RFID 盘点 |
+| **Phase 2** | v2.3-v2.4 | gRPC 通信，决策引擎，可解释层 |
+| **Phase 3** | v2.5-v2.6 | 规则演进，影响分析 |
+| **Phase 4** | **v3.0-v3.1** | **Auto-Tuning，贝叶斯优化** |
+| **Phase 5** | v3.2 | RL Policy Learning |
 
 ---
 
 ## License
 
-MIT
+MIT License
+
+Copyright (c) 2026 RFIDSYSTEM
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

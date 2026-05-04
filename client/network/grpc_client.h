@@ -40,6 +40,25 @@ struct InventoryTask {
     std::string location;
 };
 
+struct DecisionView {
+    int asset_id;
+    std::string asset_name;
+    std::string location;
+    std::string action;
+    std::string risk_level;
+    std::string reason;
+    std::string timestamp;
+    bool is_handled;
+    bool is_executed;
+    bool is_ignored;
+};
+
+struct DecisionsResponse {
+    std::vector<DecisionView> decisions;
+    int total_count;
+    double adoption_rate;
+};
+
 class GrpcClient {
 public:
     struct CreateAssetParams {
@@ -58,16 +77,20 @@ public:
     };
 
     explicit GrpcClient(const std::string& server_address);
+    ~GrpcClient();
 
     int createAsset(const CreateAssetParams& params);
     Asset getAsset(int id);
     bool updateAssetStatus(int id, const std::string& newStatus, const std::string& operatorName);
     std::vector<Asset> listAssets(const ListAssetsParams& params);
-    
+
     int startInventoryTask(const std::string& taskName, const std::string& location, const std::string& operatorName);
     BatchScanResult batchScanEPC(const std::vector<std::string>& epcs, int taskId = 0);
     InventoryTask getInventoryTask(int taskId);
     bool completeInventoryTask(int taskId);
+
+    DecisionsResponse getRecentDecisions(int limit = 100, const std::string& userFilter = "");
+    bool reportDecision(int assetId, bool executed, bool ignored, const std::string& userName = "operator");
 
 private:
     class Impl;

@@ -6,6 +6,8 @@
 #include <mutex>
 #include <chrono>
 #include <functional>
+#include <thread>
+#include <queue>
 
 namespace rfid {
 

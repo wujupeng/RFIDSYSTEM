@@ -3,6 +3,9 @@
 #include <atomic>
 #include <mutex>
 #include <deque>
+#include <thread>
+#include <future>
+#include <condition_variable>
 
 constexpr size_t MAX_REQUEST_QUEUE_SIZE = 100;
 constexpr int REQUEST_TIMEOUT_MS = 2000;

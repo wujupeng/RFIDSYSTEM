@@ -3,36 +3,46 @@
 #include "asset/asset_page.h"
 #include "inventory/inventory_page.h"
 #include "repair/repair_page.h"
-#include <QMenuBar>
-#include <QMenu>
-#include <QAction>
-#include <QStyle>
+#include "recommendations/system_recommendations_page.h"
 
 MainWindow::MainWindow() {
-    setWindowTitle("RFID Asset Management System");
-    resize(1200, 800);
+    setWindowTitle("RFID Asset Management System v2.3");
+    resize(1400, 900);
 
-    QMenuBar* menuBar = new QMenuBar(this);
-    setMenuBar(menuBar);
+    tabWidget_ = new QTabWidget(this);
+    tabWidget_->setTabPosition(QTabWidget::North);
+    tabWidget_->setStyleSheet(R"(
+        QTabWidget::pane { border: none; }
+        QTabBar::tab {
+            background: #e0e0e0;
+            padding: 10px 20px;
+            border: 1px solid #bdbdbd;
+            border-bottom: none;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            font-size: 14px;
+        }
+        QTabBar::tab:selected {
+            background: #2196f3;
+            color: white;
+            border-bottom: 2px solid #1976d2;
+        }
+        QTabBar::tab:hover:!selected {
+            background: #bdbdbd;
+        }
+    )");
 
-    QMenu* pagesMenu = menuBar->addMenu("Pages");
+    tabWidget_->addTab(new DashboardPage(), "📊 仪表盘");
+    tabWidget_->addTab(new AssetPage(), "💻 资产管理");
+    tabWidget_->addTab(new InventoryPage(), "🔍 盘点");
+    tabWidget_->addTab(new RepairPage(), "🔧 维修");
+    tabWidget_->addTab(new SystemRecommendationsPage(), "⚠️ 系统建议");
 
-    QAction* dashboardAction = pagesMenu->addAction("Dashboard");
-    QAction* assetAction = pagesMenu->addAction("Asset Management");
-    QAction* inventoryAction = pagesMenu->addAction("Inventory");
-    QAction* repairAction = pagesMenu->addAction("Repair");
+    setCentralWidget(tabWidget_);
 
-    stackedWidget_ = new QStackedWidget(this);
+    connect(tabWidget_, &QTabWidget::currentChanged, this, &MainWindow::onPageChanged);
+}
 
-    stackedWidget_->addWidget(new DashboardPage());
-    stackedWidget_->addWidget(new AssetPage());
-    stackedWidget_->addWidget(new InventoryPage());
-    stackedWidget_->addWidget(new RepairPage());
-
-    setCentralWidget(stackedWidget_);
-
-    connect(dashboardAction, &QAction::triggered, this, [this]() { stackedWidget_->setCurrentIndex(0); });
-    connect(assetAction, &QAction::triggered, this, [this]() { stackedWidget_->setCurrentIndex(1); });
-    connect(inventoryAction, &QAction::triggered, this, [this]() { stackedWidget_->setCurrentIndex(2); });
-    connect(repairAction, &QAction::triggered, this, [this]() { stackedWidget_->setCurrentIndex(3); });
+void MainWindow::onPageChanged(int index) {
+    qDebug() << "Page changed to index:" << index;
 }

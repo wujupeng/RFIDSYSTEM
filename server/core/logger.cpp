@@ -31,7 +31,9 @@ void Logger::init(const std::string& appName) {
 }
 
 void Logger::shutdown() {
-    spdlog::flush_all();
+    if (logger_) {
+        logger_->flush();
+    }
     spdlog::drop_all();
 }
 

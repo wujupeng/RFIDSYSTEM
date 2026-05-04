@@ -110,18 +110,18 @@ std::shared_ptr<pqxx::connection> DBPool::acquire_with_timeout(std::chrono::mill
     auto conn = availableConnections_.back();
     availableConnections_.pop_back();
     
-    // Validate after wait
+    // Validate after wait - in modern libpqxx, recreate if invalid
     if (!isValidConnection(conn)) {
-        spdlog::warn("DB pool: connection became invalid during wait, trying to reconnect");
+        spdlog::warn("DB pool: connection became invalid during wait, creating new one");
         try {
-            conn->reset();
+            conn = createConnection();
             if (conn->is_open()) {
-                spdlog::info("DB pool: successfully reconnected");
+                spdlog::info("DB pool: successfully created new connection");
             } else {
-                throw std::runtime_error("Failed to reconnect");
+                throw std::runtime_error("Failed to create new connection");
             }
         } catch (const std::exception& e) {
-            spdlog::error("DB pool: failed to reconnect - {}", e.what());
+            spdlog::error("DB pool: failed to create new connection - {}", e.what());
             throw DBConnectionError("Connection lost and reconnection failed");
         }
     }
@@ -177,14 +177,14 @@ bool DBPool::isConnected() const {
 
 void DBPool::reconnectAll() {
     std::lock_guard<std::mutex> lock(mutex_);
-    
+
     spdlog::info("DB pool: reconnecting all connections");
-    
+
     for (size_t i = 0; i < pool_.size(); ++i) {
         int attempts = 0;
         while (attempts < MAX_RECONNECT_ATTEMPTS) {
             try {
-                pool_[i]->reset();
+                pool_[i] = createConnection();
                 if (pool_[i]->is_open()) {
                     spdlog::info("DB pool: reconnected connection {}", i + 1);
                     break;
@@ -195,18 +195,18 @@ void DBPool::reconnectAll() {
             attempts++;
             std::this_thread::sleep_for(RECONNECT_DELAY);
         }
-        
+
         if (attempts >= MAX_RECONNECT_ATTEMPTS) {
             spdlog::error("DB pool: failed to reconnect connection {} after {} attempts", i + 1, MAX_RECONNECT_ATTEMPTS);
         }
     }
-    
+
     availableConnections_.clear();
     for (const auto& conn : pool_) {
         if (conn->is_open()) {
             availableConnections_.push_back(conn);
         }
     }
-    
+
     spdlog::info("DB pool: reconnect completed, {} connections available", availableConnections_.size());
 }

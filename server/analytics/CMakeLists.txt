@@ -2,15 +2,21 @@ set(ANALYTICS_SRCS
     trajectory_engine.cpp
     behavior_analyzer.cpp
     anomaly_detector.cpp
+    decision/decision_engine.cpp
+    decision/decision_stability.cpp
+    decision/action_generator.cpp
+    decision/rule_impact_analyzer.cpp
 )
 
 add_library(analytics ${ANALYTICS_SRCS})
 
 target_include_directories(analytics PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/decision
     ${CMAKE_SOURCE_DIR}/server/core
     ${CMAKE_SOURCE_DIR}/server/db
     ${CMAKE_SOURCE_DIR}/server/models
+    ${CMAKE_SOURCE_DIR}/server/repository
 )
 
 target_link_libraries(analytics

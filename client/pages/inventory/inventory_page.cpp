@@ -84,7 +84,7 @@ void InventoryPage::onSearch() {
 }
 
 void InventoryPage::onExport() {
-    QMessageBox::information(this, "Export", "Export functionality not yet implemented");
+    QMessageBox::information(this, "Export", "Export functionality not yet implemented", QMessageBox::Ok);
 }
 
 void InventoryPage::onFilterChanged(int) {

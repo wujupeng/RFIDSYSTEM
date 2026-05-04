@@ -1,6 +1,6 @@
 #pragma once
 #include <QMainWindow>
-#include <QStackedWidget>
+#include <QTabWidget>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -12,5 +12,5 @@ private slots:
     void onPageChanged(int index);
 
 private:
-    QStackedWidget* stackedWidget_;
+    QTabWidget* tabWidget_;
 };

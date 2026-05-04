@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package decision;
+
+message Decision {
+  int32 asset_id = 1;
+  string asset_name = 2;
+  string location = 3;
+  string action = 4;
+  string risk_level = 5;
+  string reason = 6;
+  string timestamp = 7;
+  bool is_handled = 8;
+  bool is_executed = 9;
+  bool is_ignored = 10;
+}
+
+message GetDecisionsRequest {
+  int32 limit = 1;
+  string user_filter = 2;
+}
+
+message GetDecisionsResponse {
+  repeated Decision decisions = 1;
+  int32 total_count = 2;
+  double adoption_rate = 3;
+}
+
+message ReportDecisionRequest {
+  int32 asset_id = 1;
+  bool executed = 2;
+  bool ignored = 3;
+  string operator_name = 4;
+}
+
+message ReportDecisionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+service DecisionService {
+  rpc GetDecisions(GetDecisionsRequest) returns (GetDecisionsResponse);
+  rpc ReportDecision(ReportDecisionRequest) returns (ReportDecisionResponse);
+}

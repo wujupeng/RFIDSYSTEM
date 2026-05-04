@@ -1,16 +1,21 @@
 #include "grpc_client.h"
 #include "asset.grpc.pb.h"
+#include "decision.grpc.pb.h"
 #include <grpcpp/grpcpp.h>
 
 class GrpcClient::Impl {
 public:
-    std::unique_ptr<asset::AssetService::Stub> stub_;
+    std::unique_ptr<asset::AssetService::Stub> asset_stub_;
+    std::unique_ptr<decision::DecisionService::Stub> decision_stub_;
 };
 
 GrpcClient::GrpcClient(const std::string& server_address) : pImpl_(new Impl) {
     auto channel = grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
-    pImpl_->stub_ = asset::AssetService::NewStub(channel);
+    pImpl_->asset_stub_ = asset::AssetService::NewStub(channel);
+    pImpl_->decision_stub_ = decision::DecisionService::NewStub(channel);
 }
+
+GrpcClient::~GrpcClient() = default;
 
 int GrpcClient::createAsset(const CreateAssetParams& params) {
     asset::CreateAssetRequest req;
@@ -24,7 +29,7 @@ int GrpcClient::createAsset(const CreateAssetParams& params) {
     asset::CreateAssetResponse res;
     grpc::ClientContext ctx;
 
-    auto status = pImpl_->stub_->CreateAsset(&ctx, req, &res);
+    auto status = pImpl_->asset_stub_->CreateAsset(&ctx, req, &res);
     if (status.ok()) {
         return res.id();
     }
@@ -39,7 +44,7 @@ Asset GrpcClient::getAsset(int id) {
     grpc::ClientContext ctx;
 
     Asset asset{};
-    if (pImpl_->stub_->GetAsset(&ctx, req, &res).ok()) {
+    if (pImpl_->asset_stub_->GetAsset(&ctx, req, &res).ok()) {
         asset.id = res.id();
         asset.name = res.name();
         asset.type = res.type();
@@ -60,7 +65,7 @@ bool GrpcClient::updateAssetStatus(int id, const std::string& newStatus, const s
     asset::UpdateAssetStatusResponse res;
     grpc::ClientContext ctx;
 
-    auto status = pImpl_->stub_->UpdateAssetStatus(&ctx, req, &res);
+    auto status = pImpl_->asset_stub_->UpdateAssetStatus(&ctx, req, &res);
     return status.ok() && res.success();
 }
 
@@ -74,7 +79,7 @@ std::vector<Asset> GrpcClient::listAssets(const ListAssetsParams& params) {
     grpc::ClientContext ctx;
 
     std::vector<Asset> assets;
-    if (pImpl_->stub_->ListAssets(&ctx, req, &res).ok()) {
+    if (pImpl_->asset_stub_->ListAssets(&ctx, req, &res).ok()) {
         for (const auto& a : res.assets()) {
             Asset asset{};
             asset.id = a.id();
@@ -99,7 +104,7 @@ int GrpcClient::startInventoryTask(const std::string& taskName, const std::strin
     asset::StartInventoryTaskResponse res;
     grpc::ClientContext ctx;
 
-    auto status = pImpl_->stub_->StartInventoryTask(&ctx, req, &res);
+    auto status = pImpl_->asset_stub_->StartInventoryTask(&ctx, req, &res);
     if (status.ok()) {
         return res.task_id();
     }
@@ -117,7 +122,7 @@ BatchScanResult GrpcClient::batchScanEPC(const std::vector<std::string>& epcs, i
     grpc::ClientContext ctx;
 
     BatchScanResult result{};
-    if (pImpl_->stub_->BatchScanEPC(&ctx, req, &res).ok()) {
+    if (pImpl_->asset_stub_->BatchScanEPC(&ctx, req, &res).ok()) {
         for (const auto& f : res.found()) {
             ScanResult sr;
             sr.epc = f.epc();
@@ -147,7 +152,7 @@ InventoryTask GrpcClient::getInventoryTask(int taskId) {
     grpc::ClientContext ctx;
 
     InventoryTask task{};
-    if (pImpl_->stub_->GetInventoryTask(&ctx, req, &res).ok()) {
+    if (pImpl_->asset_stub_->GetInventoryTask(&ctx, req, &res).ok()) {
         const auto& t = res.task();
         task.id = t.id();
         task.task_name = t.task_name();
@@ -163,4 +168,48 @@ InventoryTask GrpcClient::getInventoryTask(int taskId) {
 
 bool GrpcClient::completeInventoryTask(int taskId) {
     return true;
+}
+
+DecisionsResponse GrpcClient::getRecentDecisions(int limit, const std::string& userFilter) {
+    decision::GetDecisionsRequest req;
+    req.set_limit(limit);
+    req.set_user_filter(userFilter);
+
+    decision::GetDecisionsResponse res;
+    grpc::ClientContext ctx;
+
+    DecisionsResponse result{};
+    if (pImpl_->decision_stub_->GetDecisions(&ctx, req, &res).ok()) {
+        for (const auto& d : res.decisions()) {
+            DecisionView dv;
+            dv.asset_id = d.asset_id();
+            dv.asset_name = d.asset_name();
+            dv.location = d.location();
+            dv.action = d.action();
+            dv.risk_level = d.risk_level();
+            dv.reason = d.reason();
+            dv.timestamp = d.timestamp();
+            dv.is_handled = d.is_handled();
+            dv.is_executed = d.is_executed();
+            dv.is_ignored = d.is_ignored();
+            result.decisions.push_back(dv);
+        }
+        result.total_count = res.total_count();
+        result.adoption_rate = res.adoption_rate();
+    }
+    return result;
+}
+
+bool GrpcClient::reportDecision(int assetId, bool executed, bool ignored, const std::string& userName) {
+    decision::ReportDecisionRequest req;
+    req.set_asset_id(assetId);
+    req.set_executed(executed);
+    req.set_ignored(ignored);
+    req.set_operator_name(userName);
+
+    decision::ReportDecisionResponse res;
+    grpc::ClientContext ctx;
+
+    auto status = pImpl_->decision_stub_->ReportDecision(&ctx, req, &res);
+    return status.ok() && res.success();
 }

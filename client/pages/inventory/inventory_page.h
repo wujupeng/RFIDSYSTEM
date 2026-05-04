@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QComboBox>
+#include <QLabel>
 
 class InventoryPage : public QWidget {
     Q_OBJECT
