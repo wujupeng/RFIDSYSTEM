@@ -4,6 +4,14 @@
 #include <string>
 #include <memory>
 
+struct AssetStatistics {
+    int64_t total_assets;
+    int64_t in_stock_count;
+    int64_t in_use_count;
+    int64_t repair_count;
+    int64_t scrapped_count;
+};
+
 class AssetService {
 public:
     struct CreateAssetParams {
@@ -28,6 +36,7 @@ public:
     bool updateAssetStatus(int id, const std::string& newStatus, const std::string& operatorName);
     std::vector<Asset> listAssets(const ListAssetsParams& params);
     int getTotalCount(const std::string& statusFilter = "");
+    AssetStatistics getAssetStatistics();
 
 private:
     AssetService() = default;

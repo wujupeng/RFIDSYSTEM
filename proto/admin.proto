@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package admin;
+
+service AdminService {
+  rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
+  rpc GetUser (GetUserRequest) returns (User);
+  rpc CreateUser (CreateUserRequest) returns (User);
+  rpc UpdateUser (UpdateUserRequest) returns (User);
+  rpc DeleteUser (DeleteUserRequest) returns (EmptyResponse);
+
+  rpc GetRoles (GetRolesRequest) returns (GetRolesResponse);
+  rpc GetRole (GetRoleRequest) returns (Role);
+  rpc CreateRole (CreateRoleRequest) returns (Role);
+  rpc UpdateRole (UpdateRoleRequest) returns (Role);
+  rpc DeleteRole (DeleteRoleRequest) returns (EmptyResponse);
+
+  rpc GetPermissions (GetPermissionsRequest) returns (GetPermissionsResponse);
+
+  rpc GetSystemSettings (EmptyRequest) returns (SystemSettings);
+  rpc UpdateSystemSettings (UpdateSystemSettingsRequest) returns (SystemSettings);
+}
+
+message EmptyRequest {}
+message EmptyResponse {}
+
+message User {
+  int32 id = 1;
+  string username = 2;
+  string email = 3;
+  string name = 4;
+  int32 role_id = 5;
+  string role_name = 6;
+  bool active = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message Role {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string permissions = 4;
+  bool active = 5;
+  string created_at = 6;
+}
+
+message Permission {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string category = 4;
+}
+
+message SystemSettings {
+  string system_name = 1;
+  string system_version = 2;
+  int32 session_timeout_minutes = 3;
+  bool enable_audit_log = 4;
+  bool enable_notifications = 5;
+}
+
+message GetUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message GetUsersResponse {
+  repeated User users = 1;
+  int64 total = 2;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  string name = 4;
+  int32 role_id = 5;
+}
+
+message UpdateUserRequest {
+  int32 id = 1;
+  string email = 2;
+  string name = 3;
+  int32 role_id = 4;
+  bool active = 5;
+}
+
+message DeleteUserRequest {
+  int32 id = 1;
+}
+
+message GetRolesRequest {}
+message GetRolesResponse {
+  repeated Role roles = 1;
+}
+
+message GetRoleRequest {
+  int32 id = 1;
+}
+
+message CreateRoleRequest {
+  string name = 1;
+  string description = 2;
+  repeated string permissions = 3;
+}
+
+message UpdateRoleRequest {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string permissions = 4;
+  bool active = 5;
+}
+
+message DeleteRoleRequest {
+  int32 id = 1;
+}
+
+message GetPermissionsRequest {}
+message GetPermissionsResponse {
+  repeated Permission permissions = 1;
+}
+
+message UpdateSystemSettingsRequest {
+  string system_name = 1;
+  int32 session_timeout_minutes = 2;
+  bool enable_audit_log = 3;
+  bool enable_notifications = 4;
+}

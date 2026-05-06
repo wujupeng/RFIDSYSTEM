@@ -59,6 +59,14 @@ struct DecisionsResponse {
     double adoption_rate;
 };
 
+struct AssetStatistics {
+    int64_t total_assets;
+    int64_t in_stock_count;
+    int64_t in_use_count;
+    int64_t repair_count;
+    int64_t scrapped_count;
+};
+
 class GrpcClient {
 public:
     struct CreateAssetParams {
@@ -91,6 +99,7 @@ public:
 
     DecisionsResponse getRecentDecisions(int limit = 100, const std::string& userFilter = "");
     bool reportDecision(int assetId, bool executed, bool ignored, const std::string& userName = "operator");
+    AssetStatistics getAssetStatistics();
 
 private:
     class Impl;

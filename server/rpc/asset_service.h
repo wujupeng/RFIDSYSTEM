@@ -36,6 +36,10 @@ public:
                              const asset::HealthCheckRequest* request,
                              asset::HealthCheckResponse* response) override;
 
+    grpc::Status GetAssetStatistics(grpc::ServerContext* context,
+                                    const asset::GetAssetStatisticsRequest* request,
+                                    asset::GetAssetStatisticsResponse* response) override;
+
     grpc::Status GetMetrics(grpc::ServerContext* context,
                            const asset::GetMetricsRequest* request,
                            asset::GetMetricsResponse* response) override;

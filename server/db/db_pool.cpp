@@ -33,14 +33,21 @@ std::shared_ptr<pqxx::connection> DBPool::createConnection() {
     const char* dbname = std::getenv("RFID_DB_NAME") ? std::getenv("RFID_DB_NAME") : "rfid";
     const char* dbuser = std::getenv("RFID_DB_USER") ? std::getenv("RFID_DB_USER") : "postgres";
     const char* dbpass = std::getenv("RFID_DB_PASS") ? std::getenv("RFID_DB_PASS") : "123456";
-    const char* dbhost = std::getenv("RFID_DB_HOST") ? std::getenv("RFID_DB_HOST") : "localhost";
+    const char* dbhost = std::getenv("RFID_DB_HOST") ? std::getenv("RFID_DB_HOST") : "/var/run/postgresql";
     const char* dbport = std::getenv("RFID_DB_PORT") ? std::getenv("RFID_DB_PORT") : "5432";
+
+    std::string hostParam;
+    std::string hostStr(dbhost);
+    if (!hostStr.empty() && hostStr[0] == '/') {
+        hostParam = " host=" + hostStr;
+    } else {
+        hostParam = " hostaddr=" + hostStr + " port=" + std::string(dbport);
+    }
 
     std::string connStr = "dbname=" + std::string(dbname) +
                           " user=" + std::string(dbuser) +
                           " password=" + std::string(dbpass) +
-                          " hostaddr=" + std::string(dbhost) +
-                          " port=" + std::string(dbport);
+                          hostParam;
 
     return std::make_shared<pqxx::connection>(connStr);
 }

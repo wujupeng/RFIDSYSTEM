@@ -2,6 +2,9 @@
 #include <QMainWindow>
 #include <QTabWidget>
 
+class MonitoringClient;
+class AdminClient;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -13,4 +16,6 @@ private slots:
 
 private:
     QTabWidget* tabWidget_;
+    MonitoringClient* monitoringClient_;
+    AdminClient* adminClient_;
 };

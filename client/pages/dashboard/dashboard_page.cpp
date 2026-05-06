@@ -1,4 +1,5 @@
 #include "dashboard_page.h"
+#include "../../network/grpc_client.h"
 #include <QFont>
 
 DashboardPage::DashboardPage(QWidget* parent)
@@ -64,4 +65,12 @@ DashboardPage::DashboardPage(QWidget* parent)
 }
 
 void DashboardPage::refreshStats() {
+    GrpcClient client("localhost:50051");
+    auto stats = client.getAssetStatistics();
+
+    totalAssetsLabel_->setText(QString::number(stats.total_assets));
+    inStockLabel_->setText(QString::number(stats.in_stock_count));
+    inUseLabel_->setText(QString::number(stats.in_use_count));
+    repairLabel_->setText(QString::number(stats.repair_count));
+    scrappedLabel_->setText(QString::number(stats.scrapped_count));
 }

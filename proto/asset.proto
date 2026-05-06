@@ -7,6 +7,7 @@ service AssetService {
   rpc GetAsset (GetAssetRequest) returns (GetAssetResponse);
   rpc UpdateAssetStatus (UpdateAssetStatusRequest) returns (UpdateAssetStatusResponse);
   rpc ListAssets (ListAssetsRequest) returns (ListAssetsResponse);
+  rpc GetAssetStatistics (GetAssetStatisticsRequest) returns (GetAssetStatisticsResponse);
 
   rpc BatchScanEPC (BatchScanRequest) returns (BatchScanResponse);
   rpc StartInventoryTask (StartInventoryTaskRequest) returns (StartInventoryTaskResponse);
@@ -200,4 +201,15 @@ enum AssetStatus {
   ASSET_STATUS_IN_USE = 2;
   ASSET_STATUS_REPAIR = 3;
   ASSET_STATUS_SCRAPPED = 4;
+}
+
+message GetAssetStatisticsRequest {
+}
+
+message GetAssetStatisticsResponse {
+  int64 total_assets = 1;
+  int64 in_stock_count = 2;
+  int64 in_use_count = 3;
+  int64 repair_count = 4;
+  int64 scrapped_count = 5;
 }

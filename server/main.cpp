@@ -1,6 +1,7 @@
 #include <grpcpp/grpcpp.h>
 #include "rpc/asset_service.h"
-#include "rpc/decision_service.h"
+#include "rpc/monitoring_service.h"
+#include "rpc/admin_service.h"
 #include "core/logger.h"
 #include <iostream>
 #include <csignal>
@@ -26,16 +27,18 @@ int main() {
     signal(SIGTERM, signalHandler);
 
     Logger::init("rfid_server");
-    spdlog::info("Starting RFID Server...");
+    spdlog::info("Starting RFID Server v3.3.1...");
 
     std::string server_address("0.0.0.0:50051");
     AssetServiceImpl assetService;
-    DecisionServiceImpl decisionService;
+    MonitoringServiceImpl monitoringService;
+    AdminServiceImpl adminService;
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&assetService);
-    builder.RegisterService(&decisionService);
+    builder.RegisterService(&monitoringService);
+    builder.RegisterService(&adminService);
 
     {
         std::lock_guard<std::mutex> lock(g_server_mutex);

@@ -39,12 +39,12 @@ bool InventoryService::updateTask(int taskId, int scannedCount, int foundCount, 
 
     W.exec(
         "UPDATE inventory_tasks SET "
-        "scanned_count = " + W.to_string(scannedCount) + ", " +
-        "found_count = " + W.to_string(foundCount) + ", " +
-        "missing_count = " + W.to_string(missingCount) + ", " +
-        "extra_count = " + W.to_string(extraCount) + ", " +
+        "scanned_count = " + std::to_string(scannedCount) + ", " +
+        "found_count = " + std::to_string(foundCount) + ", " +
+        "missing_count = " + std::to_string(missingCount) + ", " +
+        "extra_count = " + std::to_string(extraCount) + ", " +
         "status = 'IN_PROGRESS' "
-        "WHERE id = " + W.to_string(taskId)
+        "WHERE id = " + std::to_string(taskId)
     );
 
     W.commit();
@@ -60,7 +60,7 @@ bool InventoryService::completeTask(int taskId) {
         "UPDATE inventory_tasks SET "
         "status = 'COMPLETED', "
         "completed_at = CURRENT_TIMESTAMP "
-        "WHERE id = " + W.to_string(taskId)
+        "WHERE id = " + std::to_string(taskId)
     );
 
     W.commit();
@@ -76,7 +76,7 @@ InventoryTask InventoryService::getTask(int taskId) {
     pqxx::result R = W.exec(
         "SELECT id, task_name, status, scanned_count, found_count, "
         "missing_count, extra_count, location, operator, created_at, completed_at "
-        "FROM inventory_tasks WHERE id = " + W.to_string(taskId)
+        "FROM inventory_tasks WHERE id = " + std::to_string(taskId)
     );
 
     InventoryTask task{};
@@ -162,7 +162,7 @@ std::vector<InventoryService::ScanResultDetail> InventoryService::scanEPCsWithDe
             try {
                 W.exec(
                     "INSERT INTO scan_records(task_id, epc, first_scan_time, last_scan_time) VALUES(" +
-                    W.to_string(taskId) + ", " +
+                    std::to_string(taskId) + ", " +
                     W.quote(detail.epc) + ", NOW(), NOW()) "
                     "ON CONFLICT (task_id, epc) DO UPDATE SET scan_count = scan_records.scan_count + 1, last_scan_time = NOW()"
                 );
@@ -249,7 +249,7 @@ InventoryResult InventoryService::scanEPCs(const std::vector<std::string>& epcs,
             try {
                 W.exec(
                     "INSERT INTO scan_records(task_id, epc, first_scan_time, last_scan_time) VALUES(" +
-                    W.to_string(taskId) + ", " +
+                    std::to_string(taskId) + ", " +
                     W.quote(epc) + ", NOW(), NOW()) "
                     "ON CONFLICT (task_id, epc) DO UPDATE SET scan_count = scan_records.scan_count + 1, last_scan_time = NOW()"
                 );

@@ -1,4 +1,5 @@
 #include "asset_service.h"
+#include "asset_code_generator.h"
 #include "../db/db_pool.h"
 #include "../core/logger.h"
 #include <sstream>
@@ -51,7 +52,7 @@ Asset AssetService::getAsset(int id) {
     pqxx::result R = W.exec(
         "SELECT id, COALESCE(asset_code,''), name, type, COALESCE(rfid_epc,''), "
         "COALESCE(location,''), status, created_at FROM assets WHERE id = " +
-        W.to_string(id)
+        std::to_string(id)
     );
 
     Asset asset;
@@ -85,7 +86,7 @@ bool AssetService::updateAssetStatus(int id, const std::string& newStatus, const
     pqxx::work W(*conn);
 
     pqxx::result R = W.exec(
-        "SELECT status FROM assets WHERE id = " + W.to_string(id)
+        "SELECT status FROM assets WHERE id = " + std::to_string(id)
     );
 
     if (R.empty()) {
@@ -103,7 +104,7 @@ bool AssetService::updateAssetStatus(int id, const std::string& newStatus, const
     }
 
     W.exec("UPDATE assets SET status = " + W.quote(newStatus) +
-           ", updated_at = CURRENT_TIMESTAMP WHERE id = " + W.to_string(id));
+           ", updated_at = CURRENT_TIMESTAMP WHERE id = " + std::to_string(id));
 
     W.commit();
 
@@ -131,8 +132,8 @@ std::vector<Asset> AssetService::listAssets(const ListAssetsParams& params) {
     std::string sql = "SELECT id, COALESCE(asset_code,''), name, type, COALESCE(rfid_epc,''), "
                       "COALESCE(location,''), status, created_at FROM assets" +
                       whereClause +
-                      " ORDER BY created_at DESC LIMIT " + W.to_string(params.page_size) +
-                      " OFFSET " + W.to_string(offset);
+                      " ORDER BY created_at DESC LIMIT " + std::to_string(params.page_size) +
+                      " OFFSET " + std::to_string(offset);
 
     pqxx::result R = W.exec(sql);
 
@@ -169,6 +170,41 @@ int AssetService::getTotalCount(const std::string& statusFilter) {
     return count;
 }
 
+AssetStatistics AssetService::getAssetStatistics() {
+    spdlog::debug("Fetching asset statistics");
+
+    auto conn = DBPool::instance().acquire();
+    pqxx::work W(*conn);
+
+    AssetStatistics stats{};
+
+    pqxx::result R = W.exec(
+        "SELECT "
+        "  COUNT(*) as total, "
+        "  SUM(CASE WHEN status = 'IN_STOCK' THEN 1 ELSE 0 END) as in_stock, "
+        "  SUM(CASE WHEN status = 'IN_USE' THEN 1 ELSE 0 END) as in_use, "
+        "  SUM(CASE WHEN status = 'REPAIR' THEN 1 ELSE 0 END) as repair, "
+        "  SUM(CASE WHEN status = 'SCRAPPED' THEN 1 ELSE 0 END) as scrapped "
+        "FROM assets"
+    );
+
+    if (!R.empty()) {
+        stats.total_assets = R[0][0].as<int64_t>();
+        stats.in_stock_count = R[0][1].as<int64_t>();
+        stats.in_use_count = R[0][2].as<int64_t>();
+        stats.repair_count = R[0][3].as<int64_t>();
+        stats.scrapped_count = R[0][4].as<int64_t>();
+    }
+
+    DBPool::instance().release(conn);
+
+    spdlog::info("Asset statistics: total={}, in_stock={}, in_use={}, repair={}, scrapped={}",
+                 stats.total_assets, stats.in_stock_count, stats.in_use_count,
+                 stats.repair_count, stats.scrapped_count);
+
+    return stats;
+}
+
 void AssetService::logAssetOperation(int assetId, const std::string& action,
                                     const std::string& oldStatus, const std::string& newStatus,
                                     const std::string& operatorName, const std::string& details) {
@@ -178,7 +214,7 @@ void AssetService::logAssetOperation(int assetId, const std::string& action,
 
         std::string sql = "INSERT INTO asset_logs(asset_id, action, old_status, new_status, operator, details) "
                          "VALUES(" +
-                         W.to_string(assetId) + ", " +
+                         std::to_string(assetId) + ", " +
                          W.quote(action) + ", " +
                          W.quote(oldStatus) + ", " +
                          W.quote(newStatus) + ", " +

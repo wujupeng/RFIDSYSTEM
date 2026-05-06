@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package monitoring;
+
+service MonitoringService {
+  rpc GetSystemHealth (Empty) returns (HealthResponse);
+  rpc GetActionDistribution (Empty) returns (ActionDistributionResponse);
+  rpc GetAdoptionRate (Empty) returns (AdoptionResponse);
+}
+
+message Empty {}
+
+message HealthResponse {
+  bool server_ok = 1;
+  bool grpc_ok = 2;
+  bool bandit_ok = 3;
+  int32 latency_ms = 4;
+}
+
+message ActionDistributionResponse {
+  int32 inspect = 1;
+  int32 no_action = 2;
+  int32 alert = 3;
+}
+
+message AdoptionResponse {
+  double adoption_rate = 1;
+  repeated double history = 2;
+}

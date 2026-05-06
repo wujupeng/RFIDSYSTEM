@@ -213,3 +213,19 @@ bool GrpcClient::reportDecision(int assetId, bool executed, bool ignored, const 
     auto status = pImpl_->decision_stub_->ReportDecision(&ctx, req, &res);
     return status.ok() && res.success();
 }
+
+AssetStatistics GrpcClient::getAssetStatistics() {
+    asset::GetAssetStatisticsRequest req;
+    asset::GetAssetStatisticsResponse res;
+    grpc::ClientContext ctx;
+
+    AssetStatistics stats{};
+    if (pImpl_->asset_stub_->GetAssetStatistics(&ctx, req, &res).ok()) {
+        stats.total_assets = res.total_assets();
+        stats.in_stock_count = res.in_stock_count();
+        stats.in_use_count = res.in_use_count();
+        stats.repair_count = res.repair_count();
+        stats.scrapped_count = res.scrapped_count();
+    }
+    return stats;
+}

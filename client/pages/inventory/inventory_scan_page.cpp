@@ -6,6 +6,7 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QDateTime>
+#include <QInputDialog>
 
 InventoryScanPage::InventoryScanPage(QWidget* parent)
     : QWidget(parent), isScanning_(false), taskId_(0), pendingRefresh_(false) {
@@ -140,7 +141,7 @@ void InventoryScanPage::onAddEPC() {
         }
 
         for (const auto& epcStr : results.extra) {
-            queueResult(QString::fromStdString(epcStr), "EXTRA");
+            queueResult(QString::fromStdString(epcStr), "EXTRA", "");
         }
     }
 
@@ -178,7 +179,7 @@ void InventoryScanPage::onBatchScan() {
         }
 
         for (const auto& epcStr : results.extra) {
-            queueResult(QString::fromStdString(epcStr), "EXTRA");
+            queueResult(QString::fromStdString(epcStr), "EXTRA", "");
         }
     }
 }

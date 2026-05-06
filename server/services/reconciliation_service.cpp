@@ -3,6 +3,7 @@
 #include "../core/logger.h"
 #include <sstream>
 #include <algorithm>
+#include <unordered_set>
 
 namespace data {
 
@@ -19,19 +20,18 @@ ReconciliationResult ReconciliationService::reconcile(int taskId, const std::vec
     ReconciliationResult result;
     
     try {
-        auto conn = DBPool::instance().getConnection();
+        auto conn = DBPool::instance().acquire();
+        pqxx::work W(*conn);
         
-        std::string query = R"(
-            SELECT rfid_epc FROM assets 
-            WHERE location = (SELECT location FROM inventory_tasks WHERE id = $1)
-            AND status != 'SCRAPPED'
-        )";
-        
-        auto resultSet = conn->exec_params(query, taskId);
+        pqxx::result R = W.exec(
+            "SELECT rfid_epc FROM assets "
+            "WHERE location = (SELECT location FROM inventory_tasks WHERE id = " + std::to_string(taskId) + ")"
+            " AND status != 'SCRAPPED'"
+        );
         
         std::unordered_set<std::string> expectedEPCs;
-        for (const auto& row : resultSet) {
-            expectedEPCs.insert(row["rfid_epc"].as<std::string>());
+        for (const auto& row : R) {
+            expectedEPCs.insert(row[0].as<std::string>());
         }
         
         std::unordered_set<std::string> scannedSet(scannedEPCs.begin(), scannedEPCs.end());
@@ -67,6 +67,8 @@ ReconciliationResult ReconciliationService::reconcile(int taskId, const std::vec
             ? static_cast<double>(result.total_extra) / result.total_expected 
             : 0.0;
         
+        DBPool::instance().release(conn);
+        
         spdlog::info("Reconciliation completed - task={}, expected={}, found={}, missing={}, extra={}, accuracy={:.2%}",
             taskId, result.total_expected, result.total_found, 
             result.total_missing, result.total_extra, result.accuracy_rate);
@@ -80,14 +82,18 @@ ReconciliationResult ReconciliationService::reconcile(int taskId, const std::vec
 
 void ReconciliationService::recordDirtyData(const std::string& rawEPC, const std::string& reason, const std::string& sourceReader) {
     try {
-        auto conn = DBPool::instance().getConnection();
+        auto conn = DBPool::instance().acquire();
+        pqxx::work W(*conn);
         
-        std::string query = R"(
-            INSERT INTO dirty_epcs (raw_epc, reason, source_reader, timestamp)
-            VALUES ($1, $2, $3, NOW())
-        )";
+        W.exec(
+            "INSERT INTO dirty_epcs (raw_epc, reason, source_reader, timestamp) VALUES(" +
+            W.quote(rawEPC) + ", " +
+            W.quote(reason) + ", " +
+            W.quote(sourceReader) + ", NOW())"
+        );
         
-        conn->exec_params(query, rawEPC, reason, sourceReader);
+        W.commit();
+        DBPool::instance().release(conn);
         
         spdlog::warn("Dirty EPC recorded - epc={}, reason={}, source={}", rawEPC, reason, sourceReader);
         
@@ -100,21 +106,25 @@ std::vector<DirtyDataRecord> ReconciliationService::getDirtyData(int limit) {
     std::vector<DirtyDataRecord> records;
     
     try {
-        auto conn = DBPool::instance().getConnection();
+        auto conn = DBPool::instance().acquire();
+        pqxx::work W(*conn);
         
-        std::string query = "SELECT id, raw_epc, reason, source_reader, EXTRACT(EPOCH FROM timestamp)::bigint as ts FROM dirty_epcs ORDER BY timestamp DESC LIMIT $1";
+        pqxx::result R = W.exec(
+            "SELECT id, raw_epc, reason, source_reader, EXTRACT(EPOCH FROM timestamp)::bigint as ts "
+            "FROM dirty_epcs ORDER BY timestamp DESC LIMIT " + W.quote(limit)
+        );
         
-        auto resultSet = conn->exec_params(query, limit);
-        
-        for (const auto& row : resultSet) {
+        for (const auto& row : R) {
             DirtyDataRecord record;
-            record.id = row["id"].as<int>();
-            record.raw_epc = row["raw_epc"].as<std::string>();
-            record.reason = row["reason"].as<std::string>();
-            record.source_reader = row["source_reader"].as<std::string>();
-            record.timestamp = row["ts"].as<int64_t>();
+            record.id = row[0].as<int>();
+            record.raw_epc = row[1].as<std::string>();
+            record.reason = row[2].as<std::string>();
+            record.source_reader = row[3].as<std::string>();
+            record.timestamp = row[4].as<int64_t>();
             records.push_back(record);
         }
+        
+        DBPool::instance().release(conn);
         
     } catch (const std::exception& e) {
         spdlog::error("Failed to get dirty data - {}", e.what());
@@ -125,9 +135,11 @@ std::vector<DirtyDataRecord> ReconciliationService::getDirtyData(int limit) {
 
 int ReconciliationService::getDirtyDataCount() {
     try {
-        auto conn = DBPool::instance().getConnection();
-        auto result = conn->exec("SELECT COUNT(*) FROM dirty_epcs");
-        return result[0][0].as<int>();
+        auto conn = DBPool::instance().acquire();
+        pqxx::work W(*conn);
+        pqxx::result R = W.exec("SELECT COUNT(*) FROM dirty_epcs");
+        DBPool::instance().release(conn);
+        return R[0][0].as<int>();
     } catch (const std::exception& e) {
         spdlog::error("Failed to get dirty data count - {}", e.what());
         return 0;
@@ -136,8 +148,11 @@ int ReconciliationService::getDirtyDataCount() {
 
 void ReconciliationService::clearDirtyData() {
     try {
-        auto conn = DBPool::instance().getConnection();
-        conn->exec("DELETE FROM dirty_epcs");
+        auto conn = DBPool::instance().acquire();
+        pqxx::work W(*conn);
+        W.exec("DELETE FROM dirty_epcs");
+        W.commit();
+        DBPool::instance().release(conn);
         spdlog::info("Dirty data cleared");
     } catch (const std::exception& e) {
         spdlog::error("Failed to clear dirty data - {}", e.what());
