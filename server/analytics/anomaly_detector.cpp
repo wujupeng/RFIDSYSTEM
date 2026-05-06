@@ -65,21 +65,21 @@ void AnomalyDetector::recordAnomaly(int assetId, const std::string& epc, Anomaly
         pqxx::work W(*conn);
         
         pqxx::result existing = W.exec(
-            "SELECT id FROM anomaly_events WHERE asset_id = " + W.to_string(assetId) + " "
+            "SELECT id FROM anomaly_events WHERE asset_id = " + std::to_string(assetId) + " "
             "AND anomaly_type = " + W.quote(typeToString(type)) + " AND is_resolved = FALSE"
         );
         
         if (!existing.empty()) {
             W.exec(
                 "UPDATE anomaly_events SET detected_at = NOW(), message = " + W.quote(message) + " "
-                "WHERE id = " + W.to_string(existing[0][0].as<int>())
+                "WHERE id = " + std::to_string(existing[0][0].as<int>())
             );
         } else {
             W.exec(
                 "INSERT INTO anomaly_events "
                 "(asset_id, epc, anomaly_type, severity, message, location) "
                 "VALUES(" +
-                W.to_string(assetId) + ", " +
+                std::to_string(assetId) + ", " +
                 W.quote(epc) + ", " +
                 W.quote(typeToString(type)) + ", " +
                 W.quote(severityToString(severity)) + ", " +
@@ -178,7 +178,7 @@ void AnomalyDetector::detectAssetMissing(int assetId, const std::string& epc) {
         pqxx::work W(*conn);
         
         pqxx::result R = W.exec(
-            "SELECT last_scan_time FROM scan_records WHERE asset_id = " + W.to_string(assetId) + " "
+            "SELECT last_scan_time FROM scan_records WHERE asset_id = " + std::to_string(assetId) + " "
             "ORDER BY last_scan_time DESC LIMIT 1"
         );
         
@@ -188,7 +188,7 @@ void AnomalyDetector::detectAssetMissing(int assetId, const std::string& epc) {
         } else {
             pqxx::result ageResult = W.exec(
                 "SELECT EXTRACT(MINUTE FROM NOW() - last_scan_time) FROM scan_records "
-                "WHERE asset_id = " + W.to_string(assetId) + " ORDER BY last_scan_time DESC LIMIT 1"
+                "WHERE asset_id = " + std::to_string(assetId) + " ORDER BY last_scan_time DESC LIMIT 1"
             );
             
             int minutesSinceLastScan = ageResult[0][0].as<int>();
@@ -212,7 +212,7 @@ void AnomalyDetector::detectHighFrequencyMove(int assetId, const std::string& ep
         
         pqxx::result R = W.exec(
             "SELECT COUNT(*) FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "AND entry_time >= NOW() - INTERVAL '" + std::to_string(highFrequencyTimeWindowMinutes_) + " minutes'"
         );
         
@@ -303,7 +303,7 @@ std::vector<AnomalyEvent> AnomalyDetector::getAnomaliesByAsset(int assetId) {
             "EXTRACT(EPOCH FROM detected_at)::BIGINT as det_ts, "
             "EXTRACT(EPOCH FROM resolved_at)::BIGINT as res_ts, "
             "resolved_by, is_resolved "
-            "FROM anomaly_events WHERE asset_id = " + W.to_string(assetId) + " ORDER BY detected_at DESC"
+            "FROM anomaly_events WHERE asset_id = " + std::to_string(assetId) + " ORDER BY detected_at DESC"
         );
         
         for (const auto& row : R) {
@@ -396,7 +396,7 @@ bool AnomalyDetector::resolveAnomaly(int anomalyId, const std::string& resolver)
         
         W.exec(
             "UPDATE anomaly_events SET is_resolved = TRUE, resolved_at = NOW(), resolved_by = " + W.quote(resolver) + 
-            " WHERE id = " + W.to_string(anomalyId)
+            " WHERE id = " + std::to_string(anomalyId)
         );
         
         W.commit();

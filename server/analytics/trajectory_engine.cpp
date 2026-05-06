@@ -21,7 +21,7 @@ std::string TrajectoryEngine::getPreviousLocation(int assetId) {
         
         pqxx::result R = W.exec(
             "SELECT location FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "AND exit_time IS NULL "
             "ORDER BY entry_time DESC LIMIT 1"
         );
@@ -49,7 +49,7 @@ void TrajectoryEngine::recordLocation(int assetId, const std::string& epc, const
             W.exec(
                 "UPDATE asset_location_history SET "
                 "duration_seconds = EXTRACT(EPOCH FROM NOW()) - EXTRACT(EPOCH FROM entry_time)::INT "
-                "WHERE asset_id = " + W.to_string(assetId) + " "
+                "WHERE asset_id = " + std::to_string(assetId) + " "
                 "AND exit_time IS NULL"
             );
             W.commit();
@@ -62,7 +62,7 @@ void TrajectoryEngine::recordLocation(int assetId, const std::string& epc, const
                 "UPDATE asset_location_history SET "
                 "exit_time = NOW(), "
                 "duration_seconds = EXTRACT(EPOCH FROM NOW()) - EXTRACT(EPOCH FROM entry_time)::INT "
-                "WHERE asset_id = " + W.to_string(assetId) + " "
+                "WHERE asset_id = " + std::to_string(assetId) + " "
                 "AND exit_time IS NULL"
             );
         }
@@ -71,7 +71,7 @@ void TrajectoryEngine::recordLocation(int assetId, const std::string& epc, const
             "INSERT INTO asset_location_history "
             "(asset_id, epc, location, previous_location, source_reader, entry_time) "
             "VALUES(" +
-            W.to_string(assetId) + ", " +
+            std::to_string(assetId) + ", " +
             W.quote(epc) + ", " +
             W.quote(location) + ", " +
             W.quote(previousLocation) + ", " +
@@ -79,7 +79,7 @@ void TrajectoryEngine::recordLocation(int assetId, const std::string& epc, const
         );
         
         W.exec(
-            "UPDATE assets SET location = " + W.quote(location) + " WHERE id = " + W.to_string(assetId)
+            "UPDATE assets SET location = " + W.quote(location) + " WHERE id = " + std::to_string(assetId)
         );
         
         W.commit();
@@ -103,7 +103,7 @@ Trajectory TrajectoryEngine::getTrajectory(int assetId, int64_t startTime, int64
         
         std::stringstream ss;
         ss << "SELECT epc, location, EXTRACT(EPOCH FROM entry_time)::BIGINT as ts, source_reader "
-           << "FROM asset_location_history WHERE asset_id = " << W.to_string(assetId);
+           << "FROM asset_location_history WHERE asset_id = " << std::to_string(assetId);
         
         if (startTime > 0) {
             ss << " AND entry_time >= TO_TIMESTAMP(" << startTime << ")";
@@ -194,7 +194,7 @@ LocationRecord TrajectoryEngine::getCurrentLocation(int assetId) {
             "EXTRACT(EPOCH FROM exit_time)::BIGINT as exit_ts, "
             "duration_seconds, source_reader, confidence, event_type "
             "FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "AND exit_time IS NULL "
             "ORDER BY entry_time DESC LIMIT 1"
         );
@@ -276,8 +276,8 @@ std::vector<LocationRecord> TrajectoryEngine::getLocationHistory(int assetId, in
             "EXTRACT(EPOCH FROM exit_time)::BIGINT as exit_ts, "
             "duration_seconds, source_reader, confidence, event_type "
             "FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
-            "ORDER BY entry_time DESC LIMIT " + W.to_string(limit)
+            "WHERE asset_id = " + std::to_string(assetId) + " "
+            "ORDER BY entry_time DESC LIMIT " + std::to_string(limit)
         );
         
         for (const auto& row : R) {
@@ -319,7 +319,7 @@ std::vector<LocationRecord> TrajectoryEngine::getLocationHistoryByEPC(const std:
             "duration_seconds, source_reader, confidence, event_type "
             "FROM asset_location_history "
             "WHERE epc = " + W.quote(epc) + " "
-            "ORDER BY entry_time DESC LIMIT " + W.to_string(limit)
+            "ORDER BY entry_time DESC LIMIT " + std::to_string(limit)
         );
         
         for (const auto& row : R) {
@@ -353,7 +353,7 @@ int TrajectoryEngine::getMoveCount(int assetId, int64_t startTime, int64_t endTi
         pqxx::work W(*conn);
         
         std::stringstream ss;
-        ss << "SELECT COUNT(*) FROM asset_location_history WHERE asset_id = " << W.to_string(assetId);
+        ss << "SELECT COUNT(*) FROM asset_location_history WHERE asset_id = " << std::to_string(assetId);
         
         if (startTime > 0) {
             ss << " AND entry_time >= TO_TIMESTAMP(" << startTime << ")";
@@ -383,13 +383,13 @@ void TrajectoryEngine::closeLocation(int assetId, const std::string& newLocation
             "UPDATE asset_location_history SET "
             "exit_time = NOW(), "
             "duration_seconds = EXTRACT(EPOCH FROM NOW()) - EXTRACT(EPOCH FROM entry_time)::INT "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "AND exit_time IS NULL"
         );
         
         if (!newLocation.empty()) {
             W.exec(
-                "UPDATE assets SET location = " + W.quote(newLocation) + " WHERE id = " + W.to_string(assetId)
+                "UPDATE assets SET location = " + W.quote(newLocation) + " WHERE id = " + std::to_string(assetId)
             );
         }
         
