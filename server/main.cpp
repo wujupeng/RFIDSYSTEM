@@ -2,6 +2,8 @@
 #include "rpc/asset_service.h"
 #include "rpc/monitoring_service.h"
 #include "rpc/admin_service.h"
+#include "rpc/bi_service.h"
+#include "rpc/trajectory_service.h"
 #include "core/logger.h"
 #include <iostream>
 #include <csignal>
@@ -33,12 +35,16 @@ int main() {
     AssetServiceImpl assetService;
     MonitoringServiceImpl monitoringService;
     AdminServiceImpl adminService;
+    rpc::BIReportServiceImpl biService;
+    rpc::TrajectoryServiceImpl trajectoryService;
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&assetService);
     builder.RegisterService(&monitoringService);
     builder.RegisterService(&adminService);
+    builder.RegisterService(&biService);
+    builder.RegisterService(&trajectoryService);
 
     {
         std::lock_guard<std::mutex> lock(g_server_mutex);

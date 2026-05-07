@@ -4,6 +4,8 @@
 
 class MonitoringClient;
 class AdminClient;
+class BIClient;
+class TrajectoryClient;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -18,4 +20,6 @@ private:
     QTabWidget* tabWidget_;
     MonitoringClient* monitoringClient_;
     AdminClient* adminClient_;
+    BIClient* biClient_;
+    TrajectoryClient* trajectoryClient_;
 };

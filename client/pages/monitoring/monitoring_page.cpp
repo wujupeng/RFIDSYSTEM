@@ -1,5 +1,5 @@
 #include "monitoring_page.h"
-#include "../network/monitoring_client.h"
+#include "network/monitoring_client.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>

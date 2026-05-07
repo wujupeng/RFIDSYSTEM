@@ -64,6 +64,32 @@ add_custom_command(
     DEPENDS ${PROTO_DIR}/admin.proto
 )
 
+# Generate bi.proto
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.h
+           ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.h
+    COMMAND protobuf::protoc
+    ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+         --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+         --plugin=protoc-gen-grpc=/usr/bin/grpc_cpp_plugin
+         -I${PROTO_DIR}
+         ${PROTO_DIR}/bi.proto
+    DEPENDS ${PROTO_DIR}/bi.proto
+)
+
+# Generate trajectory.proto
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.h
+           ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.h
+    COMMAND protobuf::protoc
+    ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+         --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+         --plugin=protoc-gen-grpc=/usr/bin/grpc_cpp_plugin
+         -I${PROTO_DIR}
+         ${PROTO_DIR}/trajectory.proto
+    DEPENDS ${PROTO_DIR}/trajectory.proto
+)
+
 add_custom_target(proto_gen DEPENDS 
     ${CMAKE_CURRENT_BINARY_DIR}/asset.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/asset.grpc.pb.cc
@@ -73,6 +99,10 @@ add_custom_target(proto_gen DEPENDS
     ${CMAKE_CURRENT_BINARY_DIR}/monitoring.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.cc
 )
 
 include_directories(
@@ -96,9 +126,20 @@ set(SOURCES
     pages/admin/user_management_page.cpp
     pages/admin/role_management_page.cpp
     pages/admin/system_settings_page.cpp
+    pages/bi/bi_report_page.cpp
+    pages/trace/trajectory_view.cpp
+    pages/trace/trace_page.cpp
+    pages/trace/trajectory_scene.cpp
+    pages/trace/asset_item.cpp
+    pages/trace/heatmap_layer.cpp
+    pages/trace/traffic_layer.cpp
+    pages/trace/path_layer.cpp
+    pages/trace/alert_layer.cpp
     network/grpc_client.cpp
     network/monitoring_client.cpp
     network/admin_client.cpp
+    network/bi_client.cpp
+    network/trajectory_client.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/asset.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/asset.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/decision.pb.cc
@@ -107,6 +148,10 @@ set(SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/monitoring.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.cc
 )
 
 set(HEADERS
@@ -124,9 +169,20 @@ set(HEADERS
     pages/admin/user_management_page.h
     pages/admin/role_management_page.h
     pages/admin/system_settings_page.h
+    pages/bi/bi_report_page.h
+    pages/trace/trajectory_view.h
+    pages/trace/trace_page.h
+    pages/trace/trajectory_scene.h
+    pages/trace/asset_item.h
+    pages/trace/heatmap_layer.h
+    pages/trace/traffic_layer.h
+    pages/trace/path_layer.h
+    pages/trace/alert_layer.h
     network/grpc_client.h
     network/monitoring_client.h
     network/admin_client.h
+    network/bi_client.h
+    network/trajectory_client.h
 )
 
 add_executable(rfid-client ${SOURCES} ${HEADERS})

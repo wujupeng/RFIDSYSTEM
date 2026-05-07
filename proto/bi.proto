@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+package bi;
+
+message Empty {}
+
+message ReportFilter {
+    string start_date = 1;
+    string end_date = 2;
+    repeated string asset_categories = 3;
+    repeated string locations = 4;
+    repeated string statuses = 5;
+    int32 limit = 6;
+}
+
+message ReportDataPoint {
+    string label = 1;
+    double value = 2;
+    string unit = 3;
+}
+
+message ReportSection {
+    string title = 1;
+    repeated ReportDataPoint data_points = 2;
+    repeated string table_data = 3;
+    string chart_type = 4;
+}
+
+message ReportResult {
+    string report_id = 1;
+    string title = 2;
+    string generated_at = 3;
+    int32 report_type = 4;
+    repeated ReportSection sections = 5;
+    int32 total_assets = 6;
+    int32 active_assets = 7;
+    int32 inactive_assets = 8;
+}
+
+message GenerateReportRequest {
+    int32 report_type = 1;
+    ReportFilter filter = 2;
+}
+
+message GenerateReportResponse {
+    ReportResult report = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+message ExportReportRequest {
+    string report_id = 1;
+    int32 export_format = 2;
+}
+
+message ExportReportResponse {
+    string data = 1;
+    string filename = 2;
+    bool success = 3;
+    string message = 4;
+}
+
+message GetReportsRequest {
+    int32 limit = 1;
+}
+
+message GetReportsResponse {
+    repeated ReportResult reports = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+message GetReportRequest {
+    string report_id = 1;
+}
+
+message DeleteReportRequest {
+    string report_id = 1;
+}
+
+message DeleteReportResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ScheduledTask {
+    string task_id = 1;
+    string name = 2;
+    int32 report_type = 3;
+    string cron_expression = 4;
+    int32 export_format = 5;
+    repeated string recipients = 6;
+    bool enabled = 7;
+    ReportFilter filter = 8;
+}
+
+message AddTaskRequest {
+    ScheduledTask task = 1;
+}
+
+message AddTaskResponse {
+    string task_id = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+message GetTasksRequest {}
+
+message GetTasksResponse {
+    repeated ScheduledTask tasks = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+message UpdateTaskRequest {
+    string task_id = 1;
+    ScheduledTask task = 2;
+}
+
+message UpdateTaskResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message DeleteTaskRequest {
+    string task_id = 1;
+}
+
+message DeleteTaskResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+service BIReportService {
+    rpc GenerateReport(GenerateReportRequest) returns (GenerateReportResponse);
+    rpc ExportReport(ExportReportRequest) returns (ExportReportResponse);
+    rpc GetReports(GetReportsRequest) returns (GetReportsResponse);
+    rpc GetReport(GetReportRequest) returns (ReportResult);
+    rpc DeleteReport(DeleteReportRequest) returns (DeleteReportResponse);
+    
+    rpc AddTask(AddTaskRequest) returns (AddTaskResponse);
+    rpc GetTasks(GetTasksRequest) returns (GetTasksResponse);
+    rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse);
+    rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+}

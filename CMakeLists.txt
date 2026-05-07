@@ -8,12 +8,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Protobuf/gRPC paths
-set(Protobuf_DIR "/usr/local/opt/protobuf@34/lib/cmake/protobuf")
-set(gRPC_DIR "/usr/local/opt/grpc/lib/cmake/grpc")
+set(Protobuf_DIR "/usr/lib/x86_64-linux-gnu/cmake/protobuf")
+set(gRPC_DIR "/usr/lib/x86_64-linux-gnu/cmake/grpc")
 
 # Find dependencies
-find_package(Protobuf REQUIRED CONFIG)
-find_package(gRPC REQUIRED CONFIG)
+find_package(Protobuf REQUIRED)
+find_package(gRPC REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -38,8 +38,8 @@ set(PROTO_FILES
 )
 
 # Protoc and grpc plugin paths
-set(PROTOC_EXECUTABLE "/usr/local/opt/protobuf@34/bin/protoc")
-set(GRPC_CPP_PLUGIN_EXECUTABLE "/usr/local/opt/grpc/bin/grpc_cpp_plugin")
+set(PROTOC_EXECUTABLE "/usr/bin/protoc")
+set(GRPC_CPP_PLUGIN_EXECUTABLE "/usr/bin/grpc_cpp_plugin")
 
 # Generate asset.proto
 add_custom_command(

@@ -11,13 +11,17 @@
 #include "admin/user_management_page.h"
 #include "admin/role_management_page.h"
 #include "admin/system_settings_page.h"
+#include "bi/bi_report_page.h"
+#include "trace/trace_page.h"
 #include "../network/monitoring_client.h"
 #include "../network/admin_client.h"
+#include "../network/bi_client.h"
+#include "../network/trajectory_client.h"
 
 #include <grpc/grpc.h>
 #include <grpcpp/grpcpp.h>
 
-MainWindow::MainWindow() : monitoringClient_(nullptr), adminClient_(nullptr) {
+MainWindow::MainWindow() : monitoringClient_(nullptr), adminClient_(nullptr), biClient_(nullptr), trajectoryClient_(nullptr) {
     setWindowTitle("RFID资产管理系统 v3.3.1 - 管理后台");
     resize(1400, 900);
 
@@ -25,6 +29,8 @@ MainWindow::MainWindow() : monitoringClient_(nullptr), adminClient_(nullptr) {
                                        grpc::InsecureChannelCredentials());
     monitoringClient_ = new MonitoringClient(channel);
     adminClient_ = new AdminClient(channel);
+    biClient_ = new BIClient(channel);
+    trajectoryClient_ = new TrajectoryClient(channel);
 
     tabWidget_ = new QTabWidget(this);
     tabWidget_->setTabPosition(QTabWidget::North);
@@ -58,6 +64,8 @@ MainWindow::MainWindow() : monitoringClient_(nullptr), adminClient_(nullptr) {
     tabWidget_->addTab(new InspectionPage(), "📋 定期巡检");
     tabWidget_->addTab(new SystemRecommendationsPage(), "⚠️ 系统建议");
     tabWidget_->addTab(new MonitoringPage(monitoringClient_), "🔬 运维控制台");
+    tabWidget_->addTab(new BIReportPage(biClient_), "📈 BI报表");
+    tabWidget_->addTab(new TracePage(trajectoryClient_), "📍 轨迹追踪");
     tabWidget_->addTab(new UserManagementPage(adminClient_), "👥 用户管理");
     tabWidget_->addTab(new RoleManagementPage(adminClient_), "🎭 角色管理");
     tabWidget_->addTab(new SystemSettingsPage(adminClient_), "⚙️ 系统设置");

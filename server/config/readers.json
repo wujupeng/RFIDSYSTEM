@@ -1,0 +1,31 @@
+{
+    "readers": [
+        {
+            "reader_id": "reader-001",
+            "type": "SIMULATOR",
+            "connection_string": "",
+            "baud_rate": 115200,
+            "rssi_threshold": -70,
+            "auto_reconnect": true,
+            "enabled": true
+        },
+        {
+            "reader_id": "reader-002",
+            "type": "SERIAL",
+            "connection_string": "/dev/ttyUSB0",
+            "baud_rate": 115200,
+            "rssi_threshold": -70,
+            "auto_reconnect": true,
+            "enabled": false
+        },
+        {
+            "reader_id": "reader-003",
+            "type": "TCP",
+            "connection_string": "192.168.1.100:9000",
+            "baud_rate": 115200,
+            "rssi_threshold": -70,
+            "auto_reconnect": true,
+            "enabled": false
+        }
+    ]
+}

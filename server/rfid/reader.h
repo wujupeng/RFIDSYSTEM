@@ -110,11 +110,15 @@ public:
     bool isScanning() const override;
 
 private:
+    void readLoop();
+    void parseLine(const std::string& line);
+
     std::string port_;
     int baudRate_;
     bool connected_;
     bool scanning_;
     int fd_;
+    std::thread readThread_;
 };
 
 class TcpReader : public Reader {
@@ -131,11 +135,15 @@ public:
     bool isScanning() const override;
 
 private:
+    void readLoop();
+    void parseLine(const std::string& line);
+
     std::string host_;
     int port_;
     bool connected_;
     bool scanning_;
     int sock_;
+    std::thread readThread_;
 };
 
 class SimulatorReader : public Reader {
@@ -156,9 +164,12 @@ public:
     void setEPCList(const std::vector<std::string>& epcs);
 
 private:
+    void simulateLoop();
+
     bool connected_;
     bool scanning_;
     std::vector<std::string> epcList_;
+    std::thread scanThread_;
 };
 
 class ReaderManager {

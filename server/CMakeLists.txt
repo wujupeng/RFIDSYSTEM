@@ -59,6 +59,32 @@ add_custom_command(
     DEPENDS ${PROTO_DIR}/admin.proto
 )
 
+# Generate bi.proto
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.h
+           ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.h
+    COMMAND protobuf::protoc
+    ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+         --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+         --plugin=protoc-gen-grpc=/usr/bin/grpc_cpp_plugin
+         -I${PROTO_DIR}
+         ${PROTO_DIR}/bi.proto
+    DEPENDS ${PROTO_DIR}/bi.proto
+)
+
+# Generate trajectory.proto
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.h
+           ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.h
+    COMMAND protobuf::protoc
+    ARGS --grpc_out=${CMAKE_CURRENT_BINARY_DIR}
+         --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+         --plugin=protoc-gen-grpc=/usr/bin/grpc_cpp_plugin
+         -I${PROTO_DIR}
+         ${PROTO_DIR}/trajectory.proto
+    DEPENDS ${PROTO_DIR}/trajectory.proto
+)
+
 add_custom_target(proto_gen DEPENDS
     ${CMAKE_CURRENT_BINARY_DIR}/asset.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/asset.grpc.pb.cc
@@ -66,6 +92,10 @@ add_custom_target(proto_gen DEPENDS
     ${CMAKE_CURRENT_BINARY_DIR}/monitoring.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.cc
 )
 
 # Minimal server executable
@@ -83,18 +113,30 @@ add_executable(rfid-server
     rpc/asset_service.cpp
     rpc/monitoring_service.cpp
     rpc/admin_service.cpp
+    rpc/bi_service.cpp
+    rpc/trajectory_service.cpp
     monitoring/health_monitor.cpp
     monitoring/metrics.cpp
     repository/health_repository.cpp
     repository/metrics_repository.cpp
     repository/bandit_repository.cpp
     repository/decision_feedback_repository.cpp
+    rfid/reader.cpp
+    rfid/reader_config.cpp
+    rfid/epc_processor.cpp
+    bi/bi_service.cpp
+    bi/task_scheduler.cpp
+    analytics/trajectory_engine.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/asset.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/asset.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/monitoring.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/monitoring.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/admin.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/bi.grpc.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.pb.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/trajectory.grpc.pb.cc
 )
 
 add_dependencies(rfid-server proto_gen)

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package trajectory;
+
+service TrajectoryService {
+  rpc GetTrajectory(TrajectoryRequest) returns (TrajectoryResponse);
+  rpc StreamTrajectory(TrajectoryRequest) returns (stream TrajectoryPoint);
+}
+
+message TrajectoryRequest {
+  int32 asset_id = 1;
+  int64 start_time = 2;
+  int64 end_time = 3;
+}
+
+message TrajectoryPoint {
+  string location = 1;
+  int64 timestamp = 2;
+  double risk_score = 3;
+  string status = 4;
+}
+
+message TrajectoryResponse {
+  repeated TrajectoryPoint points = 1;
+  string asset_name = 2;
+  int32 asset_id = 3;
+}
