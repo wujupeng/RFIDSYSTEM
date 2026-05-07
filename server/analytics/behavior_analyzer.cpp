@@ -24,35 +24,35 @@ UsageStats BehaviorAnalyzer::analyzeUsage(int assetId) {
         pqxx::work W(*conn);
         
         pqxx::result scanResult = W.exec(
-            "SELECT COUNT(*) FROM scan_records WHERE asset_id = " + W.to_string(assetId)
+            "SELECT COUNT(*) FROM scan_records WHERE asset_id = " + std::to_string(assetId)
         );
         stats.total_scans = scanResult[0][0].as<int>();
         
         pqxx::result moveResult = W.exec(
-            "SELECT COUNT(*) FROM asset_location_history WHERE asset_id = " + W.to_string(assetId)
+            "SELECT COUNT(*) FROM asset_location_history WHERE asset_id = " + std::to_string(assetId)
         );
         stats.move_count = moveResult[0][0].as<int>();
         
         pqxx::result locResult = W.exec(
-            "SELECT COUNT(DISTINCT location) FROM asset_location_history WHERE asset_id = " + W.to_string(assetId)
+            "SELECT COUNT(DISTINCT location) FROM asset_location_history WHERE asset_id = " + std::to_string(assetId)
         );
         stats.unique_locations = locResult[0][0].as<int>();
         
         pqxx::result dailyResult = W.exec(
             "SELECT COUNT(*) / (EXTRACT(DAY FROM (NOW() - MIN(entry_time))) + 1) "
-            "FROM asset_location_history WHERE asset_id = " + W.to_string(assetId)
+            "FROM asset_location_history WHERE asset_id = " + std::to_string(assetId)
         );
         stats.daily_avg_scans = dailyResult[0][0].as<double>();
         
         pqxx::result weeklyResult = W.exec(
             "SELECT COUNT(*) / (EXTRACT(WEEK FROM (NOW() - MIN(entry_time))) + 1) "
-            "FROM asset_location_history WHERE asset_id = " + W.to_string(assetId)
+            "FROM asset_location_history WHERE asset_id = " + std::to_string(assetId)
         );
         stats.weekly_avg_scans = weeklyResult[0][0].as<double>();
         
         pqxx::result mostResult = W.exec(
             "SELECT location, COUNT(*) as cnt FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "GROUP BY location ORDER BY cnt DESC LIMIT 1"
         );
         if (!mostResult.empty()) {
@@ -61,7 +61,7 @@ UsageStats BehaviorAnalyzer::analyzeUsage(int assetId) {
         
         pqxx::result leastResult = W.exec(
             "SELECT location, COUNT(*) as cnt FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "GROUP BY location ORDER BY cnt ASC LIMIT 1"
         );
         if (!leastResult.empty()) {
@@ -69,7 +69,7 @@ UsageStats BehaviorAnalyzer::analyzeUsage(int assetId) {
         }
         
         pqxx::result epcResult = W.exec(
-            "SELECT epc FROM asset_location_history WHERE asset_id = " + W.to_string(assetId) + " LIMIT 1"
+            "SELECT epc FROM asset_location_history WHERE asset_id = " + std::to_string(assetId) + " LIMIT 1"
         );
         if (!epcResult.empty()) {
             stats.epc = epcResult[0][0].as<std::string>();
@@ -136,7 +136,7 @@ std::vector<BehaviorPattern> BehaviorAnalyzer::getBehaviorPatterns(int assetId) 
             "MAX(duration_seconds) as max_dur, "
             "MIN(duration_seconds) as min_dur "
             "FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "GROUP BY location ORDER BY cnt DESC"
         );
         
@@ -152,7 +152,7 @@ std::vector<BehaviorPattern> BehaviorAnalyzer::getBehaviorPatterns(int assetId) 
             
             if (epc.empty()) {
                 pqxx::result epcResult = W.exec(
-                    "SELECT epc FROM asset_location_history WHERE asset_id = " + W.to_string(assetId) + " LIMIT 1"
+                    "SELECT epc FROM asset_location_history WHERE asset_id = " + std::to_string(assetId) + " LIMIT 1"
                 );
                 if (!epcResult.empty()) {
                     epc = epcResult[0][0].as<std::string>();
@@ -217,7 +217,7 @@ int BehaviorAnalyzer::getUsageFrequency(int assetId, int64_t startTime, int64_t 
         pqxx::work W(*conn);
         
         std::stringstream ss;
-        ss << "SELECT COUNT(*) FROM scan_records WHERE asset_id = " << W.to_string(assetId);
+        ss << "SELECT COUNT(*) FROM scan_records WHERE asset_id = " << std::to_string(assetId);
         
         if (startTime > 0) {
             ss << " AND first_scan_time >= TO_TIMESTAMP(" << startTime << ")";
@@ -245,7 +245,7 @@ double BehaviorAnalyzer::getAverageStayDuration(int assetId) {
         
         pqxx::result R = W.exec(
             "SELECT AVG(duration_seconds) FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " AND duration_seconds > 0"
+            "WHERE asset_id = " + std::to_string(assetId) + " AND duration_seconds > 0"
         );
         
         DBPool::instance().release(conn);
@@ -265,7 +265,7 @@ std::string BehaviorAnalyzer::getMostVisitedLocation(int assetId) {
         
         pqxx::result R = W.exec(
             "SELECT location FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "GROUP BY location ORDER BY COUNT(*) DESC LIMIT 1"
         );
         
@@ -291,7 +291,7 @@ std::vector<std::pair<std::string, int>> BehaviorAnalyzer::getLocationVisitCount
         
         pqxx::result R = W.exec(
             "SELECT location, COUNT(*) as cnt FROM asset_location_history "
-            "WHERE asset_id = " + W.to_string(assetId) + " "
+            "WHERE asset_id = " + std::to_string(assetId) + " "
             "GROUP BY location ORDER BY cnt DESC"
         );
         

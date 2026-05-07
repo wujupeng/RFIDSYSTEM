@@ -103,7 +103,16 @@ Decision DecisionStabilityManager::makeStableDecision(
     if (isInCooldownInternal(assetId, fresh_decision.action_type, now)) {
         DecisionRecord last = getLastDecisionInternal(assetId);
         if (last.asset_id != 0) {
-            return last;
+            Decision cached_decision;
+            cached_decision.asset_id = last.asset_id;
+            cached_decision.asset_name = last.asset_name;
+            cached_decision.action_type = last.action_type;
+            cached_decision.action = last.action;
+            cached_decision.reason = last.reason;
+            cached_decision.priority = last.priority;
+            cached_decision.suggested_location = last.suggested_location;
+            cached_decision.is_shadow_mode = (last.mode == DecisionMode::SHADOW);
+            return cached_decision;
         }
     }
 
@@ -125,7 +134,7 @@ Decision DecisionStabilityManager::makeStableDecision(
 
     decision_history_[assetId].push_back(record);
 
-    DecisionRecord db_record;
+    ::DecisionRecord db_record;
     db_record.asset_id = assetId;
     db_record.asset_name = assetName;
     db_record.location = currentLocation;
