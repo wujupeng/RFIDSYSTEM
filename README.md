@@ -1,7 +1,7 @@
-# RFIDSYSTEM v3.1
+# RFIDSYSTEM v3.2
 # RFID 资产全生命周期 + 决策智能管理系统
 
-> **v3.1 Bayesian Auto-Tuning** | RFID 驱动的 EAM + ITAM 融合平台，覆盖 IT 设备与生产设备的完整生命周期管理，具备 AI 决策能力。
+> **v3.2 Contextual Bandit** | RFID 驱动的 EAM + ITAM 融合平台，覆盖 IT 设备与生产设备的完整生命周期管理，具备上下文感知的 AI 决策能力。
 
 ---
 
@@ -15,8 +15,9 @@
 | [v2.4](https://github.com/example/rfid-system/releases/tag/v2.4) | 2026-03 | 决策可解释层（Snapshot + Risk Breakdown） |
 | [v2.5](https://github.com/example/rfid-system/releases/tag/v2.5) | 2026-04 | 规则演进系统（Rule Registry + Versioning） |
 | [v2.6](https://github.com/example/rfid-system/releases/tag/v2.6) | 2026-04 | 规则影响分析（Rule Impact Analysis） |
-| **[v3.0](https://github.com/example/rfid-system/releases/tag/v3.0)** | 2026-05 | **自动调参系统（Random/Grid/Gradient Search）** |
-| **[v3.1](https://github.com/example/rfid-system/releases/tag/v3.1)** | 2026-05 | **Bayesian Auto-Tuning（高斯过程 + 获取函数）** |
+| [v3.0](https://github.com/example/rfid-system/releases/tag/v3.0) | 2026-05 | 自动调参系统（Random/Grid/Gradient Search） |
+| [v3.1](https://github.com/example/rfid-system/releases/tag/v3.1) | 2026-05 | Bayesian Auto-Tuning（高斯过程 + 获取函数） |
+| **[v3.2](https://github.com/example/rfid-system/releases/tag/v3.2)** | 2026-05 | **Contextual Bandit（LinUCB + 延迟奖励）** |
 
 ---
 
@@ -203,6 +204,137 @@ enum class ActionType {
 - recall_delta      : 召回率变化
 ```
 
+### v3.2 Contextual Bandit 系统
+
+**核心目标**: 在不同"资产场景（context）"下，自动选择最优"决策策略（action）"，并根据反馈持续优化。
+
+```cpp
+// 概念映射
+Context（上下文） → 资产状态 + 风险 + 行为
+Action（动作）    → INSPECT / ALERT / NO_ACTION / REALLOCATE  
+Reward（奖励）    → adoption_rate + accuracy + 负反馈
+Policy（策略）    → 当前 DecisionEngine + 参数组合
+```
+
+**Context 特征向量（14维）**
+
+```cpp
+struct ContextFeatures {
+    // 风险特征
+    double missing_risk;        // 丢失风险 [0, 1]
+    double inactivity_risk;     // 闲置风险 [0, 1]
+    double abnormal_risk;       // 异常行为风险 [0, 1]
+
+    // 扫描统计特征
+    double daily_avg_scans;     // 日均扫描次数
+    double weekly_avg_scans;    // 周均扫描次数
+
+    // 行为特征
+    int move_count_24h;         // 24小时移动次数
+    int hours_since_last_seen;  // 距离上次扫描的小时数
+
+    // 状态特征
+    bool in_illegal_location;   // 是否在非法位置
+    bool is_backup;             // 是否为备用设备
+
+    // 类型特征
+    int asset_type;             // 资产类型编码：0=电脑,1=服务器,2=生产设备,3=其他
+
+    // 新增：增强区分度特征 (v3.2 优化)
+    double last_seen_variance;     // 最近扫描间隔波动
+    double location_stability;     // 位置稳定性
+    double historical_missing_rate; // 历史丢失率
+};
+```
+
+**Action 空间**
+
+```cpp
+enum class ActionType {
+    NO_ACTION = 0,
+    INSPECT = 1,
+    ALERT = 2,
+    REALLOCATE = 3
+};
+
+struct Action {
+    ActionType type;
+    double threshold_adjustment;  // 阈值调整 [-0.5, 0.5]
+    double confidence_boost;      // 置信度调节 [0.8, 1.2]
+};
+```
+
+**LinUCB 算法实现（v3.2 优化）**
+
+```cpp
+// 选择动作（UCB 公式，α = 1.5）
+score = θ^T · x + α · sqrt(x^T · A^{-1} · x)
+
+// 更新模型（含行动成本惩罚）
+action_cost = getActionCost(action.type)
+net_reward = reward - action_cost
+A += x · x^T
+b += net_reward · x
+θ = A^{-1} · b
+```
+
+**行动成本惩罚（防策略塌陷）**
+
+```cpp
+// 对高成本动作进行惩罚，防止INSPECT占比过高
+inline double getActionCost(ActionType type) {
+    switch (type) {
+        case ActionType::INSPECT:     return 0.3;  // 现场检查：成本最高
+        case ActionType::ALERT:       return 0.2;  // 发送告警
+        case ActionType::REALLOCATE:  return 0.4;  // 重新调配
+        case ActionType::NO_ACTION:   return 0.0;  // 不操作
+        default: return 0.0;
+    }
+}
+```
+
+**运行模式**
+
+| 模式 | 说明 |
+|------|------|
+| SHADOW | 影子模式：只预测，不影响决策 |
+| SUGGESTION | 建议模式：显示 Bandit 推荐 vs Rule 推荐 |
+| AUTO | 自动模式：Bandit 覆盖 DecisionEngine |
+
+**延迟奖励处理**
+
+```cpp
+struct DelayedReward {
+    int decision_id;
+    double reward;
+    int delay_hours;  // 延迟小时数
+};
+
+// 应用场景：
+// - 用户2小时后确认 → reward才生效
+// - 24小时后未丢失 → 修正reward
+```
+
+**探索策略（v3.2 优化）**
+
+```cpp
+// epsilon-greedy 逐步衰减，最低 5%（强制最小探索）
+epsilon = max(0.05, 0.1 * (1 - total_samples / 10000))
+
+// 参数优化：α = 1.5（提升探索权重）
+```
+
+**线上监控指标**
+
+```sql
+-- Action 分布监控
+SELECT action, COUNT(*) FROM bandit_logs GROUP BY action;
+
+-- 报警阈值
+-- INSPECT > 70% → WARNING
+-- INSPECT > 85% → ERROR
+```
+
 ---
 
 ## 技术选型
@@ -214,7 +346,8 @@ enum class ActionType {
 | **接口协议** | gRPC + Protobuf |
 | **数据库** | PostgreSQL 15+ |
 | **缓存** | Redis（进阶） |
-| **AI 引擎** | Gaussian Process + Bayesian Optimization |
+| **AI 引擎** | Gaussian Process + Bayesian Optimization + Contextual Bandit (LinUCB) |
+| **机器学习框架** | Eigen (线性代数) |
 | **RFID 协议** | EPC Gen2 UHF 860–960MHz（Impinj） |
 
 ---
@@ -268,11 +401,17 @@ rfidsystem/
 │   │   ├── parameter_space.h/cpp   # 参数空间
 │   │   ├── reward_evaluator.h/cpp  # 奖励评估
 │   │   ├── tuning_strategy.h/cpp   # 调参策略
-│   │   └── bayes/                  # 贝叶斯优化
-│   │       ├── gaussian_process.h  # 高斯过程
-│   │       ├── surrogate_model.h   # 代理模型
-│   │       ├── acquisition_function.h # 获取函数
-│   │       └── bayesian_optimizer.h # 贝叶斯优化器
+│   │   ├── bayes/                  # 贝叶斯优化
+│   │   │   ├── gaussian_process.h  # 高斯过程
+│   │   │   ├── surrogate_model.h   # 代理模型
+│   │   │   ├── acquisition_function.h # 获取函数
+│   │   │   └── bayesian_optimizer.h # 贝叶斯优化器
+│   │   └── bandit/                 # ⭐ Contextual Bandit (v3.2)
+│   │       ├── bandit_types.h      # 数据结构定义
+│   │       ├── linucb_algorithm.h/cpp # LinUCB 算法
+│   │       ├── bandit_engine.h/cpp # Bandit 引擎控制器
+│   │       ├── context_builder.h/cpp # 上下文构建器
+│   │       └── delayed_reward_handler.h/cpp # 延迟奖励处理器
 │   │
 │   └── rpc/                         # gRPC 服务
 │       ├── asset_service.h/cpp     # 资产服务
@@ -736,8 +875,9 @@ stability_weight = 0.1
 | **Phase 1** | v1.0-v2.0 | 资产管理基础功能，RFID 盘点 |
 | **Phase 2** | v2.3-v2.4 | gRPC 通信，决策引擎，可解释层 |
 | **Phase 3** | v2.5-v2.6 | 规则演进，影响分析 |
-| **Phase 4** | **v3.0-v3.1** | **Auto-Tuning，贝叶斯优化** |
-| **Phase 5** | v3.2 | RL Policy Learning |
+| **Phase 4** | v3.0-v3.1 | Auto-Tuning，贝叶斯优化 |
+| **Phase 5** | **v3.2** | **Contextual Bandit（LinUCB + 延迟奖励）** |
+| **Phase 6** | v3.3 | RL Policy Learning（深度强化学习） |
 
 ---
 
