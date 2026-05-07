@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package spatial;
+
+message ActionScore {
+    string action = 1;
+    double score = 2;
+    double reward = 3;
+}
+
+message BanditDecision {
+    int32 asset_id = 1;
+    string asset_name = 2;
+    
+    repeated ActionScore actions = 3;
+    string top_action = 4;
+    double top_score = 5;
+    
+    double exploration_rate = 6;
+    double exploitation_rate = 7;
+    
+    string reason = 8;
+}
+
+message DecisionFrame {
+    int64 timestamp = 1;
+    uint64 frame_id = 2;
+    
+    repeated BanditDecision decisions = 3;
+    
+    // Statistics
+    int32 inspect_count = 4;
+    int32 alert_count = 5;
+    int32 no_action_count = 6;
+    double avg_confidence = 7;
+    
+    // For deterministic verification
+    uint64 frame_hash = 8;
+}

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package spatial;
+
+message TrajectoryPoint {
+    int32 asset_id = 1;
+    double x = 2;
+    double y = 3;
+    int64 timestamp = 4;
+    string location = 5;
+    double risk_score = 6;
+}
+
+message TrajectoryFrame {
+    int64 timestamp = 1;
+    uint64 frame_id = 2;
+    
+    repeated TrajectoryPoint points = 3;
+    
+    // Metadata
+    int32 asset_count = 4;
+    uint64 frame_hash = 5;
+}

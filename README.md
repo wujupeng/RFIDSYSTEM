@@ -1,7 +1,7 @@
-# RFIDSYSTEM v3.2
-# RFID 资产全生命周期 + 决策智能管理系统
+# RFIDSYSTEM v3.5
+# RFID 空间智能 + 自证明运行时平台
 
-> **v3.2 Contextual Bandit** | RFID 驱动的 EAM + ITAM 融合平台，覆盖 IT 设备与生产设备的完整生命周期管理，具备上下文感知的 AI 决策能力。
+> **v3.5 Spatial Intelligence** | 从 RFID 资产管理系统演进为 **Spatial AI Runtime Platform**，具备自证明运行时、图智能、空间定位引擎和多 Agent 自治能力。
 
 ---
 
@@ -17,24 +17,67 @@
 | [v2.6](https://github.com/example/rfid-system/releases/tag/v2.6) | 2026-04 | 规则影响分析（Rule Impact Analysis） |
 | [v3.0](https://github.com/example/rfid-system/releases/tag/v3.0) | 2026-05 | 自动调参系统（Random/Grid/Gradient Search） |
 | [v3.1](https://github.com/example/rfid-system/releases/tag/v3.1) | 2026-05 | Bayesian Auto-Tuning（高斯过程 + 获取函数） |
-| **[v3.2](https://github.com/example/rfid-system/releases/tag/v3.2)** | 2026-05 | **Contextual Bandit（LinUCB + 延迟奖励）** |
+| [v3.2](https://github.com/example/rfid-system/releases/tag/v3.2) | 2026-05 | Contextual Bandit（LinUCB + 延迟奖励） |
+| [v3.3](https://github.com/example/rfid-system/releases/tag/v3.3) | 2026-05 | **Self-Proving Runtime（确定性运行时 + 可证明性 + 自愈能力）** |
+| [v3.4](https://github.com/example/rfid-system/releases/tag/v3.4) | 2026-05 | **Graph AI Layer（拓扑推断 + 图预测 + 自修复网络 + Runtime Governance）** |
+| [v3.5](https://github.com/example/rfid-system/releases/tag/v3.5) | 2026-06 | **RFID Spatial Positioning Engine（多精度定位：L1-L4 + 卡尔曼滤波 + 波束形成）** |
 
 ---
 
 ## 系统架构总览
 
 ```
-采购 → 入库 → 贴标(RFID) → 领用 → 使用 → 巡检 → 报修 → 维修 → 盘点 → 报废
-                                    ↓
-                              ┌─────────────┐
-                              │  决策引擎   │ ← AI 核心
-                              └─────────────┘
-                                    ↓
-                         ┌────────────────────────┐
-                         │  Bayesian Auto-Tuner   │
-                         │  (v3.1 新增)          │
-                         └────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        RFID Device Layer                                   │
+│  [RFID Reader] [Gateway] [Tag] [Antenna Array]                             │
+└─────────────────────────────┬───────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Spatial Runtime Layer                                │
+│  [SpatialFrame ABI] [FrameScheduler] [Decision Overlay] [Replay System]    │
+└─────────────────────────────┬───────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Topology Runtime Layer                               │
+│  [Auto Topology Inference] [Tag Flow Tracker] [Signal Analyzer]            │
+└─────────────────────────────┬───────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Graph Intelligence Layer                             │
+│  [Topology Predictor] [Failure Propagation] [Graph Optimizer] [Self-Healing]│
+└─────────────────────────────┬───────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Self-Proving Runtime Kernel                          │
+│  [Consistency Gate] [Proof Gate] [Causal Gate] [Trust Score]               │
+└─────────────────────────────┬───────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        AI Spatial Microkernel                              │
+│  [Kernel ABI] [MicroKernel] [Chaos Engine] [Recovery Engine]               │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Epoch 演进历程
+
+| Epoch | 名称 | 核心能力 |
+|-------|------|----------|
+| **Epoch 1** | Deterministic Runtime | 确定性执行、可回放、决策哈希验证 |
+| **Epoch 2** | Self-Healing Runtime | 自动故障恢复、状态机统一、故障总线 |
+| **Epoch 3** | Self-Proving Runtime | 可证明性、因果链追溯、信任评分系统 |
+| **Epoch 4** | Graph Intelligence | 拓扑推断、故障传播、自修复网络 |
+| **Epoch 5** | Autonomous Agent Society | 多 Agent 协作、协商投票、运行时治理 |
+| **Epoch 6** | Spatial Intelligence Platform | 空间定位引擎(L1-L4)、RF环境感知、卡尔曼滤波 |
+
+### 核心设计原则
+
+| 原则 | 说明 |
+|------|------|
+| **ABI Freeze** | SpatialFrame、RenderGraph、GPU Upload Layout 固定 |
+| **Deterministic** | 统一随机数生成、决策哈希验证、回放一致性 |
+| **Self-Proving** | 每帧可证明、因果链可追溯、恢复可验证 |
+| **Self-Healing** | 自动检测故障、自动恢复、自愈评分板 |
+| **Governance** | AI宪法约束、决策沙箱、审计账本 |
 
 ---
 
@@ -204,6 +247,115 @@ enum class ActionType {
 - recall_delta      : 召回率变化
 ```
 
+### v3.3 Self-Proving Runtime（自证明运行时）
+
+**核心目标**: 实现系统一致性验证、可证明性、确定性回放和自动自愈能力。
+
+```cpp
+// 系统一致性验证器
+struct ConsistencyResult {
+    bool frame_consistent = false;
+    bool ai_consistent = false;
+    bool gpu_consistent = false;
+    double confidence = 0.0;
+    std::vector<std::string> violations;
+};
+
+struct ConsistencyInput {
+    uint64_t frame_hash = 0;
+    uint64_t ai_hash = 0;
+    uint64_t gpu_hash = 0;
+    uint64_t frame_id = 0;
+};
+```
+
+**核心组件**:
+- `SystemConsistencyChecker`: 验证Frame/AI/GPU三层一致性
+- `ProofLedger`: 证明账本，记录可证明性证据链
+- `SystemProofEngine`: 验证确定性、因果性和恢复性
+- `RuntimeRecoveryEngine`: 自愈引擎，自动恢复故障
+
+**运行时状态机**:
+```cpp
+enum class RuntimeState {
+    INIT,
+    RUNNING,
+    DEGRADED,
+    INSPECT,
+    PAUSED,
+    RECOVERING,
+    EMERGENCY_STOP,
+    SHUTDOWN
+};
+```
+
+### v3.4 Graph AI Layer（图智能层）
+
+**核心目标**: 实现拓扑推断、预测、故障传播分析和自修复网络。
+
+```cpp
+// 拓扑结构定义
+struct TopologyNode {
+    uint64_t reader_id;
+    float x, y;
+    float coverage_radius;
+    float load;
+};
+
+struct TopologyEdge {
+    uint64_t from;
+    uint64_t to;
+    float strength;          // 连接强度
+    float transition_prob;   // 设备迁移概率
+};
+```
+
+**核心能力**:
+1. **Topology Prediction**: 预测未来拓扑变化、拥堵、掉线
+2. **Failure Propagation**: 故障传播分析，评估影响范围
+3. **Graph Optimizer**: 自动优化拓扑、负载均衡、路径优化
+4. **Self-Healing Network**: 自动重构网络、故障恢复
+
+**风险传播模型**:
+```
+Risk(zone_j) += Risk(zone_i) * edge_weight * exp(-distance)
+```
+
+### v3.5 RFID Spatial Positioning Engine（空间定位引擎）
+
+**核心目标**: 实现从L1到L4的多精度定位能力。
+
+```cpp
+enum class LocalizationMode {
+    RSSI_ONLY,       // L1: 区域级定位
+    PHASE_ONLY,      // L2: 米级定位
+    RSSI_PHASE,      // L3: 亚米级定位
+    AOA,             // L4: 厘米级定位
+    BEAMFORMING      // 高精度定位
+};
+```
+
+**定位精度层级**:
+| 层级 | 精度 | 技术 |
+|------|------|------|
+| L1 | 区域级 | RSSI粗定位 |
+| L2 | 米级 | 相位差 |
+| L3 | 亚米级 | AoA到达角 |
+| L4 | 厘米级 | 波束形成 |
+
+**核心组件**:
+- `RSSILocalizer`: RSSI信号强度定位
+- `PhaseLocalizer`: 相位差定位
+- `AoASolver`: 到达角求解器
+- `TriangulationEngine`: 三角定位引擎
+- `KalmanTracker`: 卡尔曼滤波跟踪器
+- `BeamformingEngine`: 波束形成引擎
+
+**定位流程**:
+```
+RFID Observation → RSSI/Phase/AoA → Triangulation → Kalman Filter → Spatial Probability
+```
+
 ### v3.2 Contextual Bandit 系统
 
 **核心目标**: 在不同"资产场景（context）"下，自动选择最优"决策策略（action）"，并根据反馈持续优化。
@@ -349,6 +501,9 @@ SELECT action, COUNT(*) FROM bandit_logs GROUP BY action;
 | **AI 引擎** | Gaussian Process + Bayesian Optimization + Contextual Bandit (LinUCB) |
 | **机器学习框架** | Eigen (线性代数) |
 | **RFID 协议** | EPC Gen2 UHF 860–960MHz（Impinj） |
+| **定位技术** | RSSI + Phase + AoA + Beamforming + Kalman Filter |
+| **图计算** | Graph Embedding + Failure Propagation + Topology Prediction |
+| **运行时** | Self-Proving Kernel + Chaos Engineering + Self-Healing |
 
 ---
 
@@ -413,6 +568,104 @@ rfidsystem/
 │   │       ├── context_builder.h/cpp # 上下文构建器
 │   │       └── delayed_reward_handler.h/cpp # 延迟奖励处理器
 │   │
+│   ├── runtime/                    # ⭐ Runtime Layer (v3.3)
+│   │   ├── system_consistency_checker.h/cpp # 系统一致性验证
+│   │   ├── proof_ledger.h/cpp      # 证明账本
+│   │   ├── system_proof_engine.h/cpp # 系统证明引擎
+│   │   ├── runtime_recovery_engine.h/cpp # 运行时恢复引擎
+│   │   ├── runtime_state_machine.h/cpp # 运行时状态机
+│   │   ├── runtime_failure_bus.h/cpp # 统一故障总线
+│   │   └── kernel/                 # ⭐ 内核层
+│   │       ├── runtime_kernel.h/cpp # 系统内核
+│   │       ├── microkernel.h/cpp   # 统一微内核
+│   │       ├── kernel_abi.h        # 内核 ABI
+│   │       └── chaos/              # ⭐ 混沌工程
+│   │           ├── chaos_kernel.h/cpp # 混沌内核
+│   │           ├── fault_injector.h/cpp # 故障注入器
+│   │           ├── chaos_policy_engine.h/cpp # 混沌策略引擎
+│   │           ├── resilience_verifier.h/cpp # 自愈验证器
+│   │           └── recovery_scoreboard.h/cpp # 自愈评分板
+│   │
+│   ├── topology/                   # ⭐ 拓扑推断引擎 (v3.4)
+│   │   ├── topology_engine.h/cpp   # 拓扑引擎
+│   │   ├── topology_graph_builder.h/cpp # 图构建器
+│   │   ├── rf_signal_analyzer.h/cpp # 信号分析器
+│   │   └── tag_flow_tracker.h/cpp  # 标签流动跟踪
+│   │
+│   ├── graph_ai/                   # ⭐ Graph AI Layer (v3.4)
+│   │   ├── graph_runtime.h/cpp     # 图运行时
+│   │   ├── topology_predictor.h/cpp # 拓扑预测引擎
+│   │   ├── failure_propagation_engine.h/cpp # 故障传播引擎
+│   │   ├── graph_optimizer.h/cpp   # 拓扑优化器
+│   │   ├── self_healing_network.h/cpp # 自修复网络
+│   │   └── graph_embedding_engine.h/cpp # 图嵌入引擎
+│   │
+│   ├── governance/                 # ⭐ Runtime Governance (v3.4)
+│   │   ├── ai_constitution.h/cpp   # AI 宪法层
+│   │   ├── runtime_governor.h/cpp  # 运行时治理器
+│   │   ├── permission_model.h/cpp  # 权限模型
+│   │   ├── decision_sandbox.h/cpp  # 决策沙箱
+│   │   └── audit_ledger.h/cpp      # 审计账本
+│   │
+│   ├── agents/                     # ⭐ Autonomous Agents (v3.4)
+│   │   ├── base_agent.h            # 基础 Agent 类
+│   │   ├── reader_agent.h/cpp      # 读卡器管理 Agent
+│   │   ├── patrol_agent.h/cpp      # 巡逻 Agent
+│   │   ├── congestion_agent.h/cpp  # 拥堵管理 Agent
+│   │   ├── repair_agent.h/cpp      # 修复 Agent
+│   │   ├── policy_agent.h/cpp      # 策略 Agent
+│   │   └── agent_scheduler.h/cpp   # Agent 调度器
+│   │
+│   ├── civilization/               # ⭐ Civilization Memory (v3.4)
+│   │   ├── civilization_memory.h/cpp # 文明记忆
+│   │   ├── event_timeline.h/cpp    # 事件时间线
+│   │   ├── evolution_history.h/cpp # 演化历史
+│   │   └── law_evolution.h/cpp     # 法律演化
+│   │
+│   ├── society/                    # ⭐ Multi-Agent Society (v3.4)
+│   │   ├── agent_bus.h/cpp         # Agent 通信总线
+│   │   ├── voting_system.h/cpp     # 投票系统
+│   │   └── consensus_engine.h/cpp  # 共识引擎
+│   │
+│   ├── economy/                    # ⭐ Runtime Economy (v3.4)
+│   │   ├── runtime_budget.h/cpp    # 运行时预算
+│   │   └── compute_allocator.h/cpp # 计算资源分配器
+│   │
+│   ├── spatial_positioning/        # ⭐ Spatial Positioning Engine (v3.5)
+│   │   ├── spatial_types.h         # 空间数据类型
+│   │   ├── rssi_localizer.h/cpp    # RSSI 粗定位
+│   │   ├── phase_localizer.h/cpp   # 相位定位
+│   │   ├── aoa_solver.h/cpp        # AoA 到达角求解器
+│   │   ├── triangulation_engine.h/cpp # 三角定位引擎
+│   │   ├── kalman_tracker.h/cpp    # 卡尔曼跟踪器
+│   │   ├── spatial_filter.h/cpp    # 空间滤波器
+│   │   ├── beamforming_engine.h/cpp # 波束形成引擎
+│   │   └── tag_position_engine.h/cpp # 标签定位引擎
+│   │
+│   ├── spatial_runtime/            # ⭐ Localization Runtime (v3.5)
+│   │   ├── localization_scheduler.h/cpp # 定位调度器
+│   │   ├── localization_worker_pool.h/cpp # 工作池
+│   │   ├── localization_budget.h/cpp # 定位预算
+│   │   └── localization_pipeline.h/cpp # 定位流水线
+│   │
+│   ├── spatial_confidence/         # ⭐ Confidence Runtime (v3.5)
+│   │   ├── confidence_engine.h/cpp # 置信度引擎
+│   │   └── uncertainty_tracker.h/cpp # 不确定性跟踪器
+│   │
+│   ├── reader_topology/            # ⭐ Reader Topology (v3.5)
+│   │   ├── reader_graph.h/cpp      # Reader 拓扑图
+│   │   └── antenna_array_model.h   # 天线阵列模型
+│   │
+│   ├── rf_runtime/                 # ⭐ RF Environment (v3.5)
+│   │   ├── rf_environment_model.h/cpp # RF 环境模型
+│   │   ├── attenuation_field.h     # 衰减场
+│   │   └── interference_detector.h # 干扰检测器
+│   │
+│   ├── spatial_ai/                 # ⭐ Spatial AI Fusion (v3.5)
+│   │   ├── trajectory_predictor.h  # 轨迹预测器
+│   │   ├── anomaly_detector.h      # 异常检测器
+│   │   └── behavior_pattern_engine.h # 行为模式引擎
+│   │
 │   └── rpc/                         # gRPC 服务
 │       ├── asset_service.h/cpp     # 资产服务
 │       └── decision_service.h/cpp  # 决策服务
@@ -428,8 +681,16 @@ rfidsystem/
 │   │   ├── recommendations/        # ⭐ 系统建议页
 │   │   │   └── system_recommendations_page.h
 │   │   └── repair/                 # 报修
-│   └── network/                    # 网络层
-│       └── grpc_client.h/cpp       # gRPC 客户端
+│   ├── network/                    # 网络层
+│   │   └── grpc_client.h/cpp       # gRPC 客户端
+│   └── visual/                     # ⭐ 可视化层
+│       ├── gpu/                    # GPU 渲染
+│       │   ├── decision_overlay_buffer.h/cpp # 决策叠加层
+│       │   └── gpu_resource_tracker.h/cpp # GPU 资源跟踪
+│       └── spatial_field/          # ⭐ 空间场可视化
+│           ├── probability_field_pass.h # 概率场渲染
+│           ├── covariance_visualizer.h # 协方差可视化
+│           └── aoa_wave_renderer.h # AoA 波场渲染
 │
 ├── proto/                          # gRPC 接口定义
 │   ├── asset.proto                 # 资产服务
@@ -876,8 +1137,11 @@ stability_weight = 0.1
 | **Phase 2** | v2.3-v2.4 | gRPC 通信，决策引擎，可解释层 |
 | **Phase 3** | v2.5-v2.6 | 规则演进，影响分析 |
 | **Phase 4** | v3.0-v3.1 | Auto-Tuning，贝叶斯优化 |
-| **Phase 5** | **v3.2** | **Contextual Bandit（LinUCB + 延迟奖励）** |
-| **Phase 6** | v3.3 | RL Policy Learning（深度强化学习） |
+| **Phase 5** | v3.2 | Contextual Bandit（LinUCB + 延迟奖励） |
+| **Phase 6** | v3.3 | **Self-Proving Runtime（确定性运行时 + 自愈能力 + Chaos Engineering）** |
+| **Phase 7** | v3.4 | **Graph AI Layer（拓扑推断 + 故障传播 + 自修复网络 + Runtime Governance）** |
+| **Phase 8** | v3.5 | **Spatial Positioning Engine（L1-L4 多精度定位 + 卡尔曼滤波 + 波束形成）** |
+| **Phase 9** | v3.6 | **Autonomous Agent Society（多 Agent 协作 + 协商投票 + 运行时经济系统）** |
 
 ---
 
