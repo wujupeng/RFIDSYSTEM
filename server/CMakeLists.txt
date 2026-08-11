@@ -127,6 +127,33 @@ add_executable(rfid-server
     bi/bi_service.cpp
     bi/task_scheduler.cpp
     analytics/trajectory_engine.cpp
+    spatial_truth/ground_truth/ground_truth_store.cpp
+    spatial_truth/ground_truth/ground_truth_service.cpp
+    spatial_truth/calibration_session/accuracy_calculator.cpp
+    spatial_truth/calibration_session/calibration_session_manager.cpp
+    spatial_truth/spatial_estimate/error_radius_calculator.cpp
+    spatial_truth/spatial_estimate/trusted_judge.cpp
+    spatial_truth/spatial_estimate/source_hash_calculator.cpp
+    spatial_truth/spatial_estimate/spatial_estimate_builder.cpp
+    spatial_truth/spatial_estimate/spatial_estimate_projector.cpp
+    spatial_truth/coordinate_system/coordinate_system_manager.cpp
+    spatial_truth/coordinate_system/coordinate_transformer.cpp
+    spatial_truth/spatial_graph/reader_topology_auto_discovery.cpp
+    spatial_truth/spatial_graph/tag_asset_binding_sync.cpp
+    spatial_truth/spatial_graph/spatial_graph_builder.cpp
+    spatial_truth/spatial_graph/spatial_graph_projector.cpp
+    spatial_truth/factory_map/heatmap_builder.cpp
+    spatial_truth/factory_map/trail_collector.cpp
+    spatial_truth/factory_map/node_status_encoder.cpp
+    spatial_truth/factory_map/factory_map_generator.cpp
+    spatial_truth/truth_gate/truth_gate.cpp
+    spatial_truth/truth_gate/truth_gate_async_runner.cpp
+    spatial_truth/truth_gate/localization_drift_event_publisher.cpp
+    spatial_truth/truth_gate/drift_degradation_chain.cpp
+    spatial_truth/truth_gate/spatial_self_healing_loop.cpp
+    spatial_benchmark/scenarios/benchmark_scenario_registry.cpp
+    spatial_benchmark/runner/scenario_runner.cpp
+    spatial_benchmark/report/benchmark_report_generator.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/asset.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/asset.grpc.pb.cc
     ${CMAKE_CURRENT_BINARY_DIR}/monitoring.pb.cc

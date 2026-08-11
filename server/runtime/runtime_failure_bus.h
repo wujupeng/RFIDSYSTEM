@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <atomic>
+#include <optional>
 
 enum class FailureType {
     FRAME_HASH_MISMATCH,
@@ -15,6 +16,7 @@ enum class FailureType {
     POLICY_CORRUPTION,
     MEMORY_LEAK_DETECTED,
     NETWORK_TIMEOUT,
+    SPATIAL_LOCALIZATION_DRIFT,
     UNKNOWN
 };
 
@@ -25,6 +27,9 @@ struct FailureEvent {
     std::string message;
     double severity;
     bool acknowledged;
+    std::optional<std::string> tag_id;
+    std::optional<double> error_value;
+    std::optional<double> threshold;
     
     FailureEvent()
         : type(FailureType::UNKNOWN), frame_id(0), timestamp(0),
